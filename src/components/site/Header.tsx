@@ -10,7 +10,7 @@ export function Header() {
             <ShieldCheck className="h-5 w-5" />
           </div>
           <span className="font-display text-lg font-bold tracking-tight">
-            YojanaMitra
+            Scheme Sathi AI
           </span>
         </Link>
         <nav className="hidden items-center gap-7 text-sm font-medium text-muted-foreground md:flex">

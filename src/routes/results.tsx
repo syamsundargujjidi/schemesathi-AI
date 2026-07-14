@@ -14,7 +14,7 @@ export const Route = createFileRoute("/results")({
   loader: ({ context }) => context.queryClient.ensureQueryData(schemesQueryOptions),
   head: () => ({
     meta: [
-      { title: "Your Eligible Schemes — YojanaMitra" },
+      { title: "Your Eligible Schemes — Scheme Sathi AI" },
       { name: "description", content: "Government schemes matched to your profile." },
       { name: "robots", content: "noindex" },
     ],

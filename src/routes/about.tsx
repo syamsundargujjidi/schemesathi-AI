@@ -4,10 +4,10 @@ import { ShieldCheck, HeartHandshake, Sparkles, ArrowRight } from "lucide-react"
 export const Route = createFileRoute("/about")({
   head: () => ({
     meta: [
-      { title: "About — YojanaMitra" },
-      { name: "description", content: "YojanaMitra is a free, independent tool helping Indian citizens discover eligible government welfare schemes." },
-      { property: "og:title", content: "About — YojanaMitra" },
-      { property: "og:description", content: "YojanaMitra is a free, independent tool helping Indian citizens discover eligible government welfare schemes." },
+      { title: "About — Scheme Sathi AI" },
+      { name: "description", content: "Scheme Sathi AI is a free, independent tool helping Indian citizens discover eligible government welfare schemes." },
+      { property: "og:title", content: "About — Scheme Sathi AI" },
+      { property: "og:description", content: "Scheme Sathi AI is a free, independent tool helping Indian citizens discover eligible government welfare schemes." },
     ],
   }),
   component: About,
@@ -20,7 +20,7 @@ function About() {
       <h1 className="mt-3 font-display text-4xl font-bold">Every citizen deserves the schemes they qualify for.</h1>
       <p className="mt-5 text-lg text-muted-foreground">
         India runs hundreds of welfare programs — but most people never learn about the ones
-        they're eligible for. YojanaMitra is a simple, free tool that changes that.
+        they're eligible for. Scheme Sathi AI is a simple, free tool that changes that.
       </p>
 
       <div className="mt-10 grid gap-6 sm:grid-cols-3">

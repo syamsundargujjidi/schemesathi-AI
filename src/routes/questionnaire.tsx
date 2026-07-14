@@ -6,9 +6,9 @@ import { INDIAN_STATES, OCCUPATIONS, type UserProfile } from "@/lib/schemes";
 export const Route = createFileRoute("/questionnaire")({
   head: () => ({
     meta: [
-      { title: "Check Your Eligibility — YojanaMitra" },
+      { title: "Check Your Eligibility — Scheme Sathi AI" },
       { name: "description", content: "Answer 4 quick steps to instantly find Central & State schemes you qualify for." },
-      { property: "og:title", content: "Check Your Eligibility — YojanaMitra" },
+      { property: "og:title", content: "Check Your Eligibility — Scheme Sathi AI" },
       { property: "og:description", content: "Answer 4 quick steps to instantly find Central & State schemes you qualify for." },
     ],
   }),

@@ -8,9 +8,9 @@ export const Route = createFileRoute("/schemes")({
   loader: ({ context }) => context.queryClient.ensureQueryData(schemesQueryOptions),
   head: () => ({
     meta: [
-      { title: "Browse All Schemes — YojanaMitra" },
+      { title: "Browse All Schemes — Scheme Sathi AI" },
       { name: "description", content: "Explore every Central & State government welfare scheme in our catalog." },
-      { property: "og:title", content: "Browse All Schemes — YojanaMitra" },
+      { property: "og:title", content: "Browse All Schemes — Scheme Sathi AI" },
       { property: "og:description", content: "Explore every Central & State government welfare scheme in our catalog." },
     ],
   }),

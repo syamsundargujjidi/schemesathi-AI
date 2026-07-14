@@ -68,10 +68,10 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "YojanaMitra — Discover Government Schemes You Deserve" },
+      { title: "Scheme Sathi AI — Discover Government Schemes You Deserve" },
       { name: "description", content: "Answer a few simple questions and instantly find Central & State government schemes you're eligible for. 100% free." },
-      { name: "author", content: "YojanaMitra" },
-      { property: "og:title", content: "YojanaMitra — Discover Government Schemes You Deserve" },
+      { name: "author", content: "Scheme Sathi AI" },
+      { property: "og:title", content: "Scheme Sathi AI — Discover Government Schemes You Deserve" },
       { property: "og:description", content: "Find Indian Central & State welfare schemes you qualify for in under a minute." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
