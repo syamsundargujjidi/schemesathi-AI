@@ -35,6 +35,7 @@ export function matchesProfile(scheme: Scheme, p: UserProfile): boolean {
   if (scheme.gender !== "any" && scheme.gender !== p.gender) return false;
   if (scheme.max_annual_income != null && p.annualIncome > scheme.max_annual_income) return false;
   if (scheme.disability_required && !p.hasDisability) return false;
+  if (scheme.state && scheme.state !== p.state) return false;
   if (scheme.occupations.length > 0) {
     const allowed = scheme.occupations;
     if (!allowed.includes("any") && !allowed.includes(p.occupation)) return false;
