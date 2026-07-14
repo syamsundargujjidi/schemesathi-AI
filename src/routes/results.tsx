@@ -142,13 +142,18 @@ function SchemeGroups({ schemes }: { schemes: Scheme[] }) {
 }
 
 function SchemeCard({ scheme }: { scheme: Scheme }) {
+  const [showDocs, setShowDocs] = useState(false);
+  const mySchemeUrl = `https://www.myscheme.gov.in/search?q=${encodeURIComponent(scheme.name)}`;
   return (
     <article className="card-elevated flex flex-col p-6">
-      <div className="flex items-center gap-2">
+      <div className="flex flex-wrap items-center gap-2">
         <span className="inline-flex items-center gap-1 rounded-full bg-primary/10 px-2.5 py-0.5 text-xs font-semibold text-primary">
           <CheckCircle2 className="h-3.5 w-3.5" /> Eligible
         </span>
         <span className="rounded-full bg-secondary px-2.5 py-0.5 text-xs font-medium">{scheme.category}</span>
+        <span className="rounded-full bg-secondary px-2.5 py-0.5 text-xs font-medium">
+          {scheme.state ? `State · ${scheme.state}` : "Central"}
+        </span>
       </div>
       <h3 className="mt-3 font-display text-lg font-bold">{scheme.name}</h3>
       {scheme.ministry && (
@@ -163,25 +168,47 @@ function SchemeCard({ scheme }: { scheme: Scheme }) {
 
       {scheme.documents.length > 0 && (
         <div className="mt-4">
-          <p className="mb-1.5 flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-            <FileText className="h-3.5 w-3.5" /> Documents
-          </p>
-          <div className="flex flex-wrap gap-1.5">
-            {scheme.documents.map((d) => (
-              <span key={d} className="rounded-md border border-border px-2 py-0.5 text-xs">{d}</span>
-            ))}
-          </div>
+          <button
+            type="button"
+            onClick={() => setShowDocs((v) => !v)}
+            className="flex w-full items-center justify-between gap-1.5 rounded-lg border border-border px-3 py-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground transition hover:bg-secondary"
+            aria-expanded={showDocs}
+          >
+            <span className="inline-flex items-center gap-1.5">
+              <FileText className="h-3.5 w-3.5" /> Required Documents ({scheme.documents.length})
+            </span>
+            <ChevronDown className={`h-3.5 w-3.5 transition-transform ${showDocs ? "rotate-180" : ""}`} />
+          </button>
+          {showDocs && (
+            <div className="mt-2 flex flex-wrap gap-1.5">
+              {scheme.documents.map((d) => (
+                <span key={d} className="rounded-md border border-border px-2 py-0.5 text-xs">{d}</span>
+              ))}
+            </div>
+          )}
         </div>
       )}
 
-      <a
-        href={scheme.apply_url}
-        target="_blank"
-        rel="noreferrer"
-        className="mt-5 inline-flex items-center justify-center gap-2 rounded-full bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground transition hover:brightness-110"
-      >
-        Apply on official portal <ArrowRight className="h-4 w-4" />
-      </a>
+      <div className="mt-5 flex flex-col gap-2 sm:flex-row">
+        <a
+          href={mySchemeUrl}
+          target="_blank"
+          rel="noreferrer"
+          className="inline-flex flex-1 items-center justify-center gap-2 rounded-full bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground transition hover:brightness-110"
+        >
+          Apply via MyScheme <ArrowRight className="h-4 w-4" />
+        </a>
+        {scheme.apply_url && (
+          <a
+            href={scheme.apply_url}
+            target="_blank"
+            rel="noreferrer"
+            className="inline-flex items-center justify-center gap-2 rounded-full border border-input px-4 py-2.5 text-xs font-semibold hover:bg-secondary"
+          >
+            Official site <ExternalLink className="h-3.5 w-3.5" />
+          </a>
+        )}
+      </div>
     </article>
   );
 }
