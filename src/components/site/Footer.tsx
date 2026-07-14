@@ -5,7 +5,7 @@ export function Footer() {
     <footer className="border-t border-border/60 bg-secondary/40">
       <div className="mx-auto flex max-w-6xl flex-col items-start justify-between gap-6 px-4 py-10 text-sm text-muted-foreground md:flex-row md:items-center">
         <div>
-          <p className="font-display text-base font-bold text-foreground">YojanaMitra</p>
+          <p className="font-display text-base font-bold text-foreground">Scheme Sathi AI</p>
           <p className="mt-1 max-w-md">
             An independent tool to help Indian citizens discover Central & State
             government welfare schemes. Not affiliated with the Government of India.
@@ -19,7 +19,7 @@ export function Footer() {
         </div>
       </div>
       <p className="pb-6 text-center text-xs text-muted-foreground">
-        © {new Date().getFullYear()} YojanaMitra · Scheme data is indicative — always verify on official portals.
+        © {new Date().getFullYear()} Scheme Sathi AI · Scheme data is indicative — always verify on official portals.
       </p>
     </footer>
   );

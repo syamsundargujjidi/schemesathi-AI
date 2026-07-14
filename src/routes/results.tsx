@@ -1,7 +1,7 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
-import { ArrowRight, RotateCcw, CheckCircle2, FileText } from "lucide-react";
+import { ArrowRight, RotateCcw, CheckCircle2, FileText, Bookmark, Check } from "lucide-react";
 import {
   schemesQueryOptions,
   matchesProfile,
@@ -9,12 +9,14 @@ import {
   type UserProfile,
   type Scheme,
 } from "@/lib/schemes";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/use-auth";
 
 export const Route = createFileRoute("/results")({
   loader: ({ context }) => context.queryClient.ensureQueryData(schemesQueryOptions),
   head: () => ({
     meta: [
-      { title: "Your Eligible Schemes — YojanaMitra" },
+      { title: "Your Eligible Schemes — Scheme Sathi AI" },
       { name: "description", content: "Government schemes matched to your profile." },
       { name: "robots", content: "noindex" },
     ],
@@ -71,12 +73,15 @@ function Results() {
             details on the official portal before applying.
           </p>
         </div>
-        <Link
-          to="/questionnaire"
-          className="inline-flex items-center gap-2 rounded-full border border-input px-4 py-2 text-sm font-semibold hover:bg-secondary"
-        >
-          <RotateCcw className="h-4 w-4" /> Redo
-        </Link>
+        <div className="flex flex-wrap items-center gap-2">
+          <SaveButton profile={profile} schemeIds={eligible.map((s) => s.id)} />
+          <Link
+            to="/questionnaire"
+            className="inline-flex items-center gap-2 rounded-full border border-input px-4 py-2 text-sm font-semibold hover:bg-secondary"
+          >
+            <RotateCcw className="h-4 w-4" /> Redo
+          </Link>
+        </div>
       </div>
 
       {/* profile summary */}
@@ -156,3 +161,46 @@ function SchemeCard({ scheme }: { scheme: Scheme }) {
     </article>
   );
 }
+
+function SaveButton({ profile, schemeIds }: { profile: UserProfile; schemeIds: string[] }) {
+  const { user, loading } = useAuth();
+  const navigate = useNavigate();
+  const [saving, setSaving] = useState(false);
+  const [saved, setSaved] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  async function onSave() {
+    if (!user) {
+      try { sessionStorage.setItem("scheme-sathi:pending-save", "1"); } catch {}
+      navigate({ to: "/auth" });
+      return;
+    }
+    setSaving(true);
+    setError(null);
+    const label = `${profile.state} · Age ${profile.age} · ${profile.occupation}`;
+    const { error } = await supabase.from("saved_results").insert({
+      user_id: user.id,
+      label,
+      profile: profile as any,
+      scheme_ids: schemeIds,
+    });
+    setSaving(false);
+    if (error) setError(error.message);
+    else setSaved(true);
+  }
+
+  return (
+    <div className="flex flex-col items-end gap-1">
+      <button
+        onClick={onSave}
+        disabled={saving || loading || saved}
+        className="inline-flex items-center gap-2 rounded-full bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground shadow-sm transition hover:brightness-110 disabled:opacity-70"
+      >
+        {saved ? (<><Check className="h-4 w-4" /> Saved</>) : (<><Bookmark className="h-4 w-4" /> {saving ? "Saving…" : user ? "Save results" : "Sign in to save"}</>)}
+      </button>
+      {error && <span className="text-xs text-destructive">{error}</span>}
+      {saved && <Link to="/saved" className="text-xs text-primary hover:underline">View saved →</Link>}
+    </div>
+  );
+}
+

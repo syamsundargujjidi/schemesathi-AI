@@ -69,7 +69,7 @@ function Home() {
       {/* How it works */}
       <section id="how-it-works" className="mx-auto max-w-6xl px-4 py-20">
         <div className="mx-auto max-w-2xl text-center">
-          <h2 className="font-display text-3xl font-bold sm:text-4xl">How YojanaMitra works</h2>
+          <h2 className="font-display text-3xl font-bold sm:text-4xl">How Scheme Sathi AI works</h2>
           <p className="mt-3 text-muted-foreground">Three simple steps to find your eligible government schemes.</p>
         </div>
         <div className="mt-12 grid gap-6 md:grid-cols-3">
