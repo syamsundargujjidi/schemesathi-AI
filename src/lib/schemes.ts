@@ -34,7 +34,6 @@ export function matchesProfile(scheme: Scheme, p: UserProfile): boolean {
   if (scheme.max_age != null && p.age > scheme.max_age) return false;
   if (scheme.gender !== "any" && scheme.gender !== p.gender) return false;
   if (scheme.max_annual_income != null && p.annualIncome > scheme.max_annual_income) return false;
-  if (scheme.bpl_only && !p.isBpl) return false;
   if (scheme.disability_required && !p.hasDisability) return false;
   if (scheme.occupations.length > 0) {
     const allowed = scheme.occupations;
@@ -48,8 +47,8 @@ export function scoreScheme(scheme: Scheme, p: UserProfile): number {
   if (scheme.occupations.includes(p.occupation)) score += 3;
   if (scheme.gender === p.gender) score += 1;
   if (scheme.is_popular) score += 1;
-  if (scheme.bpl_only && p.isBpl) score += 2;
   if (scheme.disability_required && p.hasDisability) score += 2;
+  if (scheme.state && scheme.state === p.state) score += 2;
   return score;
 }
 
