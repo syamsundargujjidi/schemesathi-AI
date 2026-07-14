@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { useState, useMemo } from "react";
 import { Search, ArrowRight } from "lucide-react";
-import { schemesQueryOptions } from "@/lib/schemes";
+import { schemesQueryOptions, type Scheme } from "@/lib/schemes";
 
 export const Route = createFileRoute("/schemes")({
   loader: ({ context }) => context.queryClient.ensureQueryData(schemesQueryOptions),
