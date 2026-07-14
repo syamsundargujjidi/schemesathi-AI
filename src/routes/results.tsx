@@ -1,7 +1,7 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
-import { ArrowRight, RotateCcw, CheckCircle2, FileText, Bookmark, Check } from "lucide-react";
+import { ArrowRight, RotateCcw, CheckCircle2, FileText, Bookmark, Check, ChevronDown, ExternalLink } from "lucide-react";
 import {
   schemesQueryOptions,
   matchesProfile,
