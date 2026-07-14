@@ -90,10 +90,11 @@ function Results() {
           `Age ${profile.age}`,
           profile.gender,
           profile.state,
+          profile.areaType,
           `Income ₹${profile.annualIncome.toLocaleString("en-IN")}`,
-          profile.isBpl ? "BPL" : null,
           profile.hasDisability ? "PwD" : null,
           profile.occupation,
+          profile.parentOccupation && profile.parentOccupation !== "na" ? `Parent: ${profile.parentOccupation}` : null,
         ].filter(Boolean).map((t) => (
           <span key={t as string} className="rounded-full bg-secondary px-3 py-1 font-medium">
             {t as string}
@@ -109,11 +110,34 @@ function Results() {
           </p>
         </div>
       ) : (
-        <div className="mt-10 grid gap-5 md:grid-cols-2">
-          {eligible.map((s) => <SchemeCard key={s.id} scheme={s} />)}
-        </div>
+        <SchemeGroups schemes={eligible} />
       )}
     </section>
+  );
+}
+
+function SchemeGroups({ schemes }: { schemes: Scheme[] }) {
+  const central = schemes.filter((s) => !s.state);
+  const state = schemes.filter((s) => s.state);
+  return (
+    <div className="mt-10 space-y-10">
+      {central.length > 0 && (
+        <div>
+          <h2 className="font-display text-xl font-bold">Central Government Schemes <span className="text-sm font-normal text-muted-foreground">({central.length})</span></h2>
+          <div className="mt-4 grid gap-5 md:grid-cols-2">
+            {central.map((s) => <SchemeCard key={s.id} scheme={s} />)}
+          </div>
+        </div>
+      )}
+      {state.length > 0 && (
+        <div>
+          <h2 className="font-display text-xl font-bold">State Government Schemes <span className="text-sm font-normal text-muted-foreground">({state.length})</span></h2>
+          <div className="mt-4 grid gap-5 md:grid-cols-2">
+            {state.map((s) => <SchemeCard key={s.id} scheme={s} />)}
+          </div>
+        </div>
+      )}
+    </div>
   );
 }
 
