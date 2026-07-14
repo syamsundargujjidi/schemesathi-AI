@@ -14,6 +14,33 @@ export type Database = {
   }
   public: {
     Tables: {
+      saved_results: {
+        Row: {
+          created_at: string
+          id: string
+          label: string | null
+          profile: Json
+          scheme_ids: string[]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          label?: string | null
+          profile: Json
+          scheme_ids?: string[]
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          label?: string | null
+          profile?: Json
+          scheme_ids?: string[]
+          user_id?: string
+        }
+        Relationships: []
+      }
       schemes: {
         Row: {
           apply_url: string
