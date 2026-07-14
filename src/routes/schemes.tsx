@@ -118,7 +118,7 @@ function SchemesPage() {
   );
 }
 
-function SchemeGrid({ schemes }: { schemes: Array<ReturnType<typeof useSuspenseQuery<typeof schemesQueryOptions>>["data"][number]> }) {
+function SchemeGrid({ schemes }: { schemes: Scheme[] }) {
   return (
     <div className="mt-6 grid gap-5 md:grid-cols-2 lg:grid-cols-3">
       {schemes.map((s) => {
