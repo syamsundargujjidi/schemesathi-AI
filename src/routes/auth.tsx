@@ -80,8 +80,9 @@ function AuthPage() {
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             className="mt-1 w-full rounded-lg border border-input bg-background px-3 py-2 text-sm"
-            placeholder="At least 6 characters"
+            placeholder="Min 6 characters"
           />
+          <p className="mt-1 text-xs text-muted-foreground">Any 6+ character password works — no strength requirement.</p>
         </div>
         {error && <p className="text-sm text-destructive">{error}</p>}
         <button

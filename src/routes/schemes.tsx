@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { useState, useMemo } from "react";
 import { Search, ArrowRight } from "lucide-react";
-import { schemesQueryOptions } from "@/lib/schemes";
+import { schemesQueryOptions, type Scheme } from "@/lib/schemes";
 
 export const Route = createFileRoute("/schemes")({
   loader: ({ context }) => context.queryClient.ensureQueryData(schemesQueryOptions),
@@ -21,6 +21,8 @@ function SchemesPage() {
   const { data: schemes } = useSuspenseQuery(schemesQueryOptions);
   const [q, setQ] = useState("");
   const [tag, setTag] = useState<string | null>(null);
+  const [scope, setScope] = useState<"all" | "central" | "state">("all");
+  const [stateFilter, setStateFilter] = useState<string | null>(null);
 
   const allTags = useMemo(() => {
     const set = new Set<string>();
@@ -28,11 +30,24 @@ function SchemesPage() {
     return Array.from(set).sort();
   }, [schemes]);
 
+  const allStates = useMemo(() => {
+    const set = new Set<string>();
+    schemes.forEach((s) => { if (s.state) set.add(s.state); });
+    return Array.from(set).sort();
+  }, [schemes]);
+
   const filtered = schemes.filter((s) => {
     const matchQ = !q || (s.name + " " + s.short_description).toLowerCase().includes(q.toLowerCase());
     const matchTag = !tag || s.tags.includes(tag);
-    return matchQ && matchTag;
+    const matchScope =
+      scope === "all" ||
+      (scope === "central" && !s.state) ||
+      (scope === "state" && !!s.state && (!stateFilter || s.state === stateFilter));
+    return matchQ && matchTag && matchScope;
   });
+
+  const central = filtered.filter((s) => !s.state);
+  const stateSchemes = filtered.filter((s) => s.state);
 
   return (
     <section className="mx-auto max-w-6xl px-4 py-14">
@@ -56,23 +71,71 @@ function SchemesPage() {
       </div>
 
       <div className="mt-4 flex flex-wrap gap-2">
-        <FilterChip active={tag === null} onClick={() => setTag(null)}>All</FilterChip>
+        <FilterChip active={scope === "all"} onClick={() => { setScope("all"); setStateFilter(null); }}>All</FilterChip>
+        <FilterChip active={scope === "central"} onClick={() => { setScope("central"); setStateFilter(null); }}>Central</FilterChip>
+        <FilterChip active={scope === "state"} onClick={() => setScope("state")}>State</FilterChip>
+      </div>
+
+      {scope === "state" && (
+        <div className="mt-3 flex flex-wrap gap-2">
+          <FilterChip active={stateFilter === null} onClick={() => setStateFilter(null)}>All states</FilterChip>
+          {allStates.map((st) => (
+            <FilterChip key={st} active={stateFilter === st} onClick={() => setStateFilter(st)}>{st}</FilterChip>
+          ))}
+        </div>
+      )}
+
+      <div className="mt-4 flex flex-wrap gap-2">
+        <FilterChip active={tag === null} onClick={() => setTag(null)}>All categories</FilterChip>
         {allTags.map((t) => (
           <FilterChip key={t} active={tag === t} onClick={() => setTag(t)}>{t}</FilterChip>
         ))}
       </div>
 
-      <div className="mt-10 grid gap-5 md:grid-cols-2 lg:grid-cols-3">
-        {filtered.map((s) => (
-          <article key={s.id} className="card-elevated flex flex-col p-6">
-            <div className="flex items-center gap-2">
-              <span className="rounded-full bg-primary/10 px-2.5 py-0.5 text-xs font-semibold text-primary">{s.category}</span>
-              {s.ministry && <span className="line-clamp-1 text-xs text-muted-foreground">{s.ministry}</span>}
+      {scope === "all" ? (
+        <div className="mt-10 space-y-12">
+          {central.length > 0 && (
+            <div>
+              <h2 className="font-display text-xl font-bold">Central Government <span className="text-sm font-normal text-muted-foreground">({central.length})</span></h2>
+              <SchemeGrid schemes={central} />
             </div>
-            <h3 className="mt-3 font-display text-lg font-bold">{s.name}</h3>
+          )}
+          {stateSchemes.length > 0 && (
+            <div>
+              <h2 className="font-display text-xl font-bold">State Government <span className="text-sm font-normal text-muted-foreground">({stateSchemes.length})</span></h2>
+              <SchemeGrid schemes={stateSchemes} />
+            </div>
+          )}
+        </div>
+      ) : (
+        <SchemeGrid schemes={filtered} />
+      )}
+
+      {filtered.length === 0 && (
+        <p className="mt-16 text-center text-muted-foreground">No schemes match your search.</p>
+      )}
+    </section>
+  );
+}
+
+function SchemeGrid({ schemes }: { schemes: Scheme[] }) {
+  return (
+    <div className="mt-6 grid gap-5 md:grid-cols-2 lg:grid-cols-3">
+      {schemes.map((s) => {
+        const mySchemeUrl = `https://www.myscheme.gov.in/search?q=${encodeURIComponent(s.name)}`;
+        return (
+          <article key={s.id} className="card-elevated flex flex-col p-6">
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="rounded-full bg-primary/10 px-2.5 py-0.5 text-xs font-semibold text-primary">{s.category}</span>
+              <span className="rounded-full bg-secondary px-2.5 py-0.5 text-xs font-medium">
+                {s.state ? `State · ${s.state}` : "Central"}
+              </span>
+            </div>
+            {s.ministry && <p className="mt-2 line-clamp-1 text-xs text-muted-foreground">{s.ministry}</p>}
+            <h3 className="mt-2 font-display text-lg font-bold">{s.name}</h3>
             <p className="mt-2 flex-1 text-sm text-muted-foreground">{s.short_description}</p>
             <a
-              href={s.apply_url}
+              href={mySchemeUrl}
               target="_blank"
               rel="noreferrer"
               className="mt-4 inline-flex items-center gap-1 text-sm font-semibold text-primary hover:underline"
@@ -80,13 +143,9 @@ function SchemesPage() {
               Learn more <ArrowRight className="h-3.5 w-3.5" />
             </a>
           </article>
-        ))}
-      </div>
-
-      {filtered.length === 0 && (
-        <p className="mt-16 text-center text-muted-foreground">No schemes match your search.</p>
-      )}
-    </section>
+        );
+      })}
+    </div>
   );
 }
 

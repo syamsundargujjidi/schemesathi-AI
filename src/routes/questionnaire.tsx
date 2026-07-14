@@ -7,9 +7,9 @@ export const Route = createFileRoute("/questionnaire")({
   head: () => ({
     meta: [
       { title: "Check Your Eligibility — Scheme Sathi AI" },
-      { name: "description", content: "Answer 4 quick steps to instantly find Central & State schemes you qualify for." },
+      { name: "description", content: "Answer a few quick steps to instantly find Central & State schemes you qualify for." },
       { property: "og:title", content: "Check Your Eligibility — Scheme Sathi AI" },
-      { property: "og:description", content: "Answer 4 quick steps to instantly find Central & State schemes you qualify for." },
+      { property: "og:description", content: "Answer a few quick steps to instantly find Central & State schemes you qualify for." },
     ],
   }),
   component: Questionnaire,
@@ -18,6 +18,16 @@ export const Route = createFileRoute("/questionnaire")({
 type Step = 0 | 1 | 2 | 3;
 const STEPS = ["Personal", "Location", "Financial", "Occupation"];
 
+const PARENT_OCCUPATIONS: Array<{ value: NonNullable<UserProfile["parentOccupation"]>; label: string }> = [
+  { value: "govt", label: "Government Employee" },
+  { value: "pvt", label: "Private Employee" },
+  { value: "self-employed", label: "Self-employed / Business" },
+  { value: "farmer", label: "Farmer" },
+  { value: "labour", label: "Daily Wage / Labour" },
+  { value: "unemployed", label: "Unemployed" },
+  { value: "na", label: "Not applicable" },
+];
+
 function Questionnaire() {
   const navigate = useNavigate();
   const [step, setStep] = useState<Step>(0);
@@ -25,15 +35,18 @@ function Questionnaire() {
   const [gender, setGender] = useState<UserProfile["gender"] | "">("");
   const [hasDisability, setHasDisability] = useState<boolean | null>(null);
   const [state, setState] = useState("");
+  const [areaType, setAreaType] = useState<UserProfile["areaType"] | "">("");
   const [annualIncome, setAnnualIncome] = useState("");
-  const [isBpl, setIsBpl] = useState<boolean | null>(null);
   const [occupation, setOccupation] = useState("");
+  const [parentOccupation, setParentOccupation] = useState<UserProfile["parentOccupation"] | "">("");
+
+  const isStudentOrChild = occupation === "student" || (Number(age) > 0 && Number(age) < 18);
 
   const canContinue =
     (step === 0 && age && Number(age) > 0 && gender && hasDisability !== null) ||
-    (step === 1 && state) ||
-    (step === 2 && annualIncome !== "" && isBpl !== null) ||
-    (step === 3 && occupation);
+    (step === 1 && state && areaType) ||
+    (step === 2 && annualIncome !== "") ||
+    (step === 3 && occupation && (!isStudentOrChild || parentOccupation));
 
   function next() {
     if (step < 3) setStep((step + 1) as Step);
@@ -48,9 +61,10 @@ function Questionnaire() {
       gender: gender as UserProfile["gender"],
       hasDisability: !!hasDisability,
       state,
+      areaType: areaType as UserProfile["areaType"],
       annualIncome: Number(annualIncome),
-      isBpl: !!isBpl,
       occupation,
+      parentOccupation: (parentOccupation || undefined) as UserProfile["parentOccupation"],
     };
     try {
       sessionStorage.setItem("yojana:profile", JSON.stringify(profile));
@@ -111,13 +125,19 @@ function Questionnaire() {
         {step === 1 && (
           <div>
             <h1 className="font-display text-2xl font-bold">Where do you live?</h1>
-            <p className="mt-1 text-sm text-muted-foreground">Some schemes are state-specific.</p>
-            <div className="mt-6">
+            <p className="mt-1 text-sm text-muted-foreground">Some schemes are state-specific or targeted to urban/rural residents.</p>
+            <div className="mt-6 space-y-6">
               <Field label="State / UT">
                 <select value={state} onChange={(e) => setState(e.target.value)} className="input">
                   <option value="">Select your state…</option>
                   {INDIAN_STATES.map((s) => <option key={s} value={s}>{s}</option>)}
                 </select>
+              </Field>
+              <Field label="Area type">
+                <div className="grid grid-cols-2 gap-2">
+                  <ChoiceBtn active={areaType === "urban"} onClick={() => setAreaType("urban")}>Urban</ChoiceBtn>
+                  <ChoiceBtn active={areaType === "rural"} onClick={() => setAreaType("rural")}>Rural</ChoiceBtn>
+                </div>
               </Field>
             </div>
           </div>
@@ -126,7 +146,7 @@ function Questionnaire() {
         {step === 2 && (
           <div>
             <h1 className="font-display text-2xl font-bold">Financial details</h1>
-            <p className="mt-1 text-sm text-muted-foreground">Used only for income-based eligibility. Never stored.</p>
+            <p className="mt-1 text-sm text-muted-foreground">Used only for income-based eligibility.</p>
             <div className="mt-6 space-y-6">
               <Field label="Annual household income (₹)">
                 <input
@@ -134,9 +154,6 @@ function Questionnaire() {
                   onChange={(e) => setAnnualIncome(e.target.value)}
                   className="input" placeholder="e.g. 180000"
                 />
-              </Field>
-              <Field label="Do you hold a BPL (Below Poverty Line) card?">
-                <YesNo value={isBpl} onChange={setIsBpl} />
               </Field>
             </div>
           </div>
@@ -153,6 +170,19 @@ function Questionnaire() {
                 </ChoiceBtn>
               ))}
             </div>
+            {isStudentOrChild && (
+              <div className="mt-8">
+                <p className="mb-2 text-sm font-medium">Parent / Guardian's occupation</p>
+                <p className="mb-4 text-xs text-muted-foreground">Some student & child welfare schemes depend on the parent's job type.</p>
+                <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+                  {PARENT_OCCUPATIONS.map((o) => (
+                    <ChoiceBtn key={o.value} active={parentOccupation === o.value} onClick={() => setParentOccupation(o.value)}>
+                      {o.label}
+                    </ChoiceBtn>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         )}
 
