@@ -161,3 +161,46 @@ function SchemeCard({ scheme }: { scheme: Scheme }) {
     </article>
   );
 }
+
+function SaveButton({ profile, schemeIds }: { profile: UserProfile; schemeIds: string[] }) {
+  const { user, loading } = useAuth();
+  const navigate = useNavigate();
+  const [saving, setSaving] = useState(false);
+  const [saved, setSaved] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  async function onSave() {
+    if (!user) {
+      try { sessionStorage.setItem("scheme-sathi:pending-save", "1"); } catch {}
+      navigate({ to: "/auth" });
+      return;
+    }
+    setSaving(true);
+    setError(null);
+    const label = `${profile.state} · Age ${profile.age} · ${profile.occupation}`;
+    const { error } = await supabase.from("saved_results").insert({
+      user_id: user.id,
+      label,
+      profile: profile as unknown as Record<string, unknown>,
+      scheme_ids: schemeIds,
+    });
+    setSaving(false);
+    if (error) setError(error.message);
+    else setSaved(true);
+  }
+
+  return (
+    <div className="flex flex-col items-end gap-1">
+      <button
+        onClick={onSave}
+        disabled={saving || loading || saved}
+        className="inline-flex items-center gap-2 rounded-full bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground shadow-sm transition hover:brightness-110 disabled:opacity-70"
+      >
+        {saved ? (<><Check className="h-4 w-4" /> Saved</>) : (<><Bookmark className="h-4 w-4" /> {saving ? "Saving…" : user ? "Save results" : "Sign in to save"}</>)}
+      </button>
+      {error && <span className="text-xs text-destructive">{error}</span>}
+      {saved && <Link to="/saved" className="text-xs text-primary hover:underline">View saved →</Link>}
+    </div>
+  );
+}
+
