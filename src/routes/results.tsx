@@ -73,12 +73,15 @@ function Results() {
             details on the official portal before applying.
           </p>
         </div>
-        <Link
-          to="/questionnaire"
-          className="inline-flex items-center gap-2 rounded-full border border-input px-4 py-2 text-sm font-semibold hover:bg-secondary"
-        >
-          <RotateCcw className="h-4 w-4" /> Redo
-        </Link>
+        <div className="flex flex-wrap items-center gap-2">
+          <SaveButton profile={profile} schemeIds={eligible.map((s) => s.id)} />
+          <Link
+            to="/questionnaire"
+            className="inline-flex items-center gap-2 rounded-full border border-input px-4 py-2 text-sm font-semibold hover:bg-secondary"
+          >
+            <RotateCcw className="h-4 w-4" /> Redo
+          </Link>
+        </div>
       </div>
 
       {/* profile summary */}
