@@ -1,7 +1,7 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
-import { ArrowRight, RotateCcw, CheckCircle2, FileText } from "lucide-react";
+import { ArrowRight, RotateCcw, CheckCircle2, FileText, Bookmark, Check } from "lucide-react";
 import {
   schemesQueryOptions,
   matchesProfile,
@@ -9,6 +9,8 @@ import {
   type UserProfile,
   type Scheme,
 } from "@/lib/schemes";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/use-auth";
 
 export const Route = createFileRoute("/results")({
   loader: ({ context }) => context.queryClient.ensureQueryData(schemesQueryOptions),
