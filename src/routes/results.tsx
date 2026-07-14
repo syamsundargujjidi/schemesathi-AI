@@ -181,7 +181,7 @@ function SaveButton({ profile, schemeIds }: { profile: UserProfile; schemeIds: s
     const { error } = await supabase.from("saved_results").insert({
       user_id: user.id,
       label,
-      profile: profile as unknown as Record<string, unknown>,
+      profile: profile as any,
       scheme_ids: schemeIds,
     });
     setSaving(false);
