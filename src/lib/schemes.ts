@@ -8,9 +8,10 @@ export type UserProfile = {
   age: number;
   gender: "male" | "female" | "other";
   state: string;
+  areaType: "urban" | "rural";
   annualIncome: number;
   occupation: string;
-  isBpl: boolean;
+  parentOccupation?: "govt" | "pvt" | "self-employed" | "farmer" | "labour" | "unemployed" | "na";
   hasDisability: boolean;
 };
 
