@@ -9,7 +9,8 @@ import {
   type UserProfile,
   type Scheme,
 } from "@/lib/schemes";
-import { supabase } from "@/integrations/supabase/client";
+import { addDoc, collection, serverTimestamp } from "firebase/firestore";
+import { getDb } from "@/integrations/firebase/client";
 import { useAuth } from "@/hooks/use-auth";
 
 export const Route = createFileRoute("/results")({
@@ -229,15 +230,19 @@ function SaveButton({ profile, schemeIds }: { profile: UserProfile; schemeIds: s
     setSaving(true);
     setError(null);
     const label = `${profile.state} · Age ${profile.age} · ${profile.occupation}`;
-    const { error } = await supabase.from("saved_results").insert({
-      user_id: user.id,
-      label,
-      profile: profile as any,
-      scheme_ids: schemeIds,
-    });
-    setSaving(false);
-    if (error) setError(error.message);
-    else setSaved(true);
+    try {
+      await addDoc(collection(getDb(), "users", user.uid, "savedResults"), {
+        label,
+        profile,
+        scheme_ids: schemeIds,
+        created_at: serverTimestamp(),
+      });
+      setSaved(true);
+    } catch (err: any) {
+      setError(err?.message ?? "Failed to save");
+    } finally {
+      setSaving(false);
+    }
   }
 
   return (
