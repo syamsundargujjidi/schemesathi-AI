@@ -77,12 +77,11 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { name: "twitter:card", content: "summary_large_image" },
       { name: "twitter:title", content: "Scheme Sathi AI — Discover Government Schemes You Deserve" },
       { name: "twitter:description", content: "Answer a few simple questions and instantly find Central & State government schemes you're eligible for. 100% free." },
-      { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/0a17c551-25b9-4d96-8543-468d5a6ee0e5/id-preview-e34e65f5--8d63cca9-1474-482a-a410-b6b4fec8dde4.lovable.app-1784052842562.png" },
-      { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/0a17c551-25b9-4d96-8543-468d5a6ee0e5/id-preview-e34e65f5--8d63cca9-1474-482a-a410-b6b4fec8dde4.lovable.app-1784052842562.png" },
+      { property: "og:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/attachments/og-images/320fc8e4-ab5f-4c9e-9c01-e116637968bb" },
+      { name: "twitter:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/attachments/og-images/320fc8e4-ab5f-4c9e-9c01-e116637968bb" },
     ],
     links: [
       { rel: "stylesheet", href: appCss },
-      { rel: "icon", href: "/favicon.ico", type: "image/x-icon" },
       { rel: "preconnect", href: "https://fonts.googleapis.com" },
       { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
       {
