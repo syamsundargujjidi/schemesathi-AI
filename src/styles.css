@@ -47,41 +47,42 @@
 :root {
   --radius: 0.875rem;
 
-  /* Light neutral background, deep navy foreground */
-  --background: oklch(0.99 0.005 240);
-  --foreground: oklch(0.18 0.04 255);
+  /* Warm cream base with saffron/marigold accents */
+  --background: oklch(0.98 0.02 85);
+  --foreground: oklch(0.22 0.05 45);
 
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.18 0.04 255);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.18 0.04 255);
+  --card: oklch(1 0.005 85);
+  --card-foreground: oklch(0.22 0.05 45);
+  --popover: oklch(1 0.005 85);
+  --popover-foreground: oklch(0.22 0.05 45);
 
-  /* Emerald brand */
-  --primary: oklch(0.62 0.16 158);
-  --primary-foreground: oklch(0.99 0.005 158);
+  /* Saffron primary */
+  --primary: oklch(0.7 0.18 55);
+  --primary-foreground: oklch(0.99 0.005 85);
 
-  --secondary: oklch(0.95 0.01 245);
-  --secondary-foreground: oklch(0.22 0.05 255);
+  --secondary: oklch(0.94 0.03 80);
+  --secondary-foreground: oklch(0.28 0.06 45);
 
-  --muted: oklch(0.96 0.008 240);
-  --muted-foreground: oklch(0.5 0.03 250);
+  --muted: oklch(0.95 0.02 85);
+  --muted-foreground: oklch(0.5 0.04 60);
 
-  --accent: oklch(0.94 0.03 155);
-  --accent-foreground: oklch(0.28 0.1 158);
+  --accent: oklch(0.92 0.08 90);
+  --accent-foreground: oklch(0.32 0.12 55);
 
   --destructive: oklch(0.6 0.22 25);
   --destructive-foreground: oklch(0.99 0.005 25);
 
-  --border: oklch(0.9 0.012 245);
-  --input: oklch(0.92 0.012 245);
-  --ring: oklch(0.62 0.16 158);
+  --border: oklch(0.9 0.03 75);
+  --input: oklch(0.92 0.025 75);
+  --ring: oklch(0.7 0.18 55);
 
   /* Custom brand tokens */
-  --brand: oklch(0.62 0.16 158);
-  --brand-foreground: oklch(0.99 0.005 158);
-  --hero-from: oklch(0.22 0.07 260);
-  --hero-to: oklch(0.32 0.08 250);
+  --brand: oklch(0.7 0.18 55);
+  --brand-foreground: oklch(0.99 0.005 85);
+  --hero-from: oklch(0.35 0.1 40);
+  --hero-to: oklch(0.5 0.15 55);
 }
+
 
 .dark {
   --background: oklch(0.16 0.04 258);
@@ -142,3 +143,28 @@
   border-radius: var(--radius-xl);
   box-shadow: var(--shadow-soft);
 }
+
+@utility perspective-1000 {
+  perspective: 1000px;
+}
+
+@utility preserve-3d {
+  transform-style: preserve-3d;
+}
+
+@utility backface-hidden {
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+
+@keyframes float-3d {
+  0%, 100% { transform: translateY(0) rotateX(6deg) rotateY(-6deg); }
+  50% { transform: translateY(-8px) rotateX(4deg) rotateY(-4deg); }
+}
+
+@keyframes blob-drift {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  33% { transform: translate(30px, -40px) scale(1.1); }
+  66% { transform: translate(-20px, 20px) scale(0.95); }
+}
+

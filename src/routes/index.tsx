@@ -2,8 +2,9 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import {
   ArrowRight, Sparkles, ClipboardList, Zap, FileCheck2,
-  ShieldCheck, Users, Landmark, HeartHandshake,
+  ShieldCheck, Users, Landmark, HeartHandshake, BookOpen, Lightbulb,
 } from "lucide-react";
+
 import { schemesQueryOptions } from "@/lib/schemes";
 
 export const Route = createFileRoute("/")({
@@ -130,7 +131,67 @@ function Home() {
         </div>
       </section>
 
+      {/* Did You Know — reading section */}
+      <section className="mx-auto max-w-6xl px-4 py-20">
+        <div className="mx-auto max-w-2xl text-center">
+          <span className="inline-flex items-center gap-2 rounded-full bg-accent px-4 py-1.5 text-xs font-semibold text-accent-foreground">
+            <BookOpen className="h-3.5 w-3.5" /> Good to know
+          </span>
+          <h2 className="mt-4 font-display text-3xl font-bold sm:text-4xl">Did you know?</h2>
+          <p className="mt-3 text-muted-foreground">
+            Interesting facts about India's welfare landscape — worth a minute of your time.
+          </p>
+        </div>
+        <div className="mt-12 grid gap-5 md:grid-cols-2 lg:grid-cols-3">
+          {[
+            {
+              tag: "PM-KISAN",
+              title: "₹3.24 lakh crore disbursed",
+              body: "Since 2019, over 11 crore small and marginal farmers have received direct cash transfers of ₹6,000 per year — one of the world's largest DBT programs.",
+            },
+            {
+              tag: "Ayushman Bharat",
+              title: "World's largest health scheme",
+              body: "PM-JAY covers over 55 crore Indians with ₹5 lakh cashless hospitalization per family per year — bigger than the population of most countries.",
+            },
+            {
+              tag: "MGNREGA",
+              title: "100 days of guaranteed work",
+              body: "Every rural household is legally entitled to 100 days of paid manual work per year — a right, not a favour. Over 15 crore active workers benefit annually.",
+            },
+            {
+              tag: "Ujjwala",
+              title: "10+ crore LPG connections",
+              body: "PMUY has given free cooking gas connections to women from BPL households, cutting indoor smoke exposure that once killed lakhs each year.",
+            },
+            {
+              tag: "Sukanya Samriddhi",
+              title: "8.2% interest for daughters",
+              body: "One of the highest sovereign-backed interest rates in India — reserved for girl-child savings accounts, fully tax-free under Section 80C.",
+            },
+            {
+              tag: "Jan Dhan",
+              title: "53+ crore bank accounts",
+              body: "PMJDY turned India from largely unbanked to universally banked in under a decade, with more than half the accounts held by women.",
+            },
+          ].map((f, i) => (
+            <article key={i} className="card-elevated group relative overflow-hidden p-6 transition hover:-translate-y-1">
+              <div className="absolute -right-6 -top-6 h-24 w-24 rounded-full bg-primary/10 blur-2xl transition group-hover:bg-primary/20" />
+              <div className="relative">
+                <div className="flex items-center gap-2">
+                  <Lightbulb className="h-4 w-4 text-primary" />
+                  <span className="text-xs font-bold uppercase tracking-widest text-primary">{f.tag}</span>
+                </div>
+                <h3 className="mt-3 font-display text-lg font-bold leading-snug">{f.title}</h3>
+                <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{f.body}</p>
+              </div>
+            </article>
+          ))}
+        </div>
+      </section>
+
       {/* Why us */}
+
       <section className="mx-auto max-w-6xl px-4 py-20">
         <div className="grid gap-8 md:grid-cols-4">
           {[
