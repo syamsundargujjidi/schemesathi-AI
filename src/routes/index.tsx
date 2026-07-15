@@ -2,8 +2,9 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import {
   ArrowRight, Sparkles, ClipboardList, Zap, FileCheck2,
-  ShieldCheck, Users, Landmark, HeartHandshake,
+  ShieldCheck, Users, Landmark, HeartHandshake, BookOpen, Lightbulb,
 } from "lucide-react";
+
 import { schemesQueryOptions } from "@/lib/schemes";
 
 export const Route = createFileRoute("/")({
