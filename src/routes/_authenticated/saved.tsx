@@ -1,7 +1,17 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { Trash2, ArrowRight, Bookmark } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
+import {
+  collection,
+  deleteDoc,
+  doc,
+  onSnapshot,
+  orderBy,
+  query,
+} from "firebase/firestore";
+import { signOut } from "firebase/auth";
+import { getDb, getFirebaseAuth } from "@/integrations/firebase/client";
+import { useAuth } from "@/hooks/use-auth";
 import type { UserProfile } from "@/lib/schemes";
 
 type SavedRow = {
@@ -9,7 +19,7 @@ type SavedRow = {
   label: string | null;
   profile: UserProfile;
   scheme_ids: string[];
-  created_at: string;
+  created_at: number; // ms
 };
 
 export const Route = createFileRoute("/_authenticated/saved")({
@@ -23,27 +33,47 @@ export const Route = createFileRoute("/_authenticated/saved")({
 });
 
 function SavedPage() {
+  const { user } = useAuth();
   const [rows, setRows] = useState<SavedRow[] | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  async function load() {
-    const { data, error } = await supabase
-      .from("saved_results")
-      .select("id,label,profile,scheme_ids,created_at")
-      .order("created_at", { ascending: false });
-    if (error) setError(error.message);
-    else setRows(data as unknown as SavedRow[]);
-  }
-
-  useEffect(() => { load(); }, []);
+  useEffect(() => {
+    if (!user) return;
+    const db = getDb();
+    const q = query(
+      collection(db, "users", user.uid, "savedResults"),
+      orderBy("created_at", "desc"),
+    );
+    const unsub = onSnapshot(
+      q,
+      (snap) => {
+        const list: SavedRow[] = snap.docs.map((d) => {
+          const data = d.data() as any;
+          return {
+            id: d.id,
+            label: data.label ?? null,
+            profile: data.profile,
+            scheme_ids: data.scheme_ids ?? [],
+            created_at:
+              typeof data.created_at === "number"
+                ? data.created_at
+                : data.created_at?.toMillis?.() ?? Date.now(),
+          };
+        });
+        setRows(list);
+      },
+      (err) => setError(err.message),
+    );
+    return () => unsub();
+  }, [user]);
 
   async function remove(id: string) {
-    await supabase.from("saved_results").delete().eq("id", id);
-    setRows((r) => (r ?? []).filter((x) => x.id !== id));
+    if (!user) return;
+    await deleteDoc(doc(getDb(), "users", user.uid, "savedResults", id));
   }
 
-  async function signOut() {
-    await supabase.auth.signOut();
+  async function doSignOut() {
+    await signOut(getFirebaseAuth());
     window.location.href = "/";
   }
 
@@ -53,8 +83,14 @@ function SavedPage() {
         <div>
           <p className="text-sm font-semibold uppercase tracking-widest text-primary">Your saved</p>
           <h1 className="mt-2 font-display text-3xl font-bold sm:text-4xl">My saved schemes</h1>
+          {user?.email && (
+            <p className="mt-1 text-xs text-muted-foreground">Signed in as {user.email}</p>
+          )}
         </div>
-        <button onClick={signOut} className="rounded-full border border-input px-4 py-2 text-sm font-semibold hover:bg-secondary">
+        <button
+          onClick={doSignOut}
+          className="rounded-full border border-input px-4 py-2 text-sm font-semibold hover:bg-secondary"
+        >
           Sign out
         </button>
       </div>
@@ -70,20 +106,27 @@ function SavedPage() {
           <p className="mt-1 text-sm text-muted-foreground">
             Fill the questionnaire and hit "Save results" to keep your matches here.
           </p>
-          <Link to="/questionnaire" className="mt-6 inline-flex items-center gap-2 rounded-full bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground">
+          <Link
+            to="/questionnaire"
+            className="mt-6 inline-flex items-center gap-2 rounded-full bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground"
+          >
             Start questionnaire <ArrowRight className="h-4 w-4" />
           </Link>
         </div>
       ) : (
         <div className="mt-8 space-y-4">
           {rows.map((r) => (
-            <article key={r.id} className="card-elevated flex flex-col gap-3 p-5 sm:flex-row sm:items-center sm:justify-between">
+            <article
+              key={r.id}
+              className="card-elevated flex flex-col gap-3 p-5 sm:flex-row sm:items-center sm:justify-between"
+            >
               <div>
                 <p className="font-display font-semibold">
                   {r.label || `Saved on ${new Date(r.created_at).toLocaleDateString()}`}
                 </p>
                 <p className="mt-1 text-xs text-muted-foreground">
-                  {r.scheme_ids.length} scheme{r.scheme_ids.length === 1 ? "" : "s"} · Age {r.profile?.age} · {r.profile?.state} · {r.profile?.occupation}
+                  {r.scheme_ids.length} scheme{r.scheme_ids.length === 1 ? "" : "s"} · Age{" "}
+                  {r.profile?.age} · {r.profile?.state} · {r.profile?.occupation}
                 </p>
               </div>
               <div className="flex items-center gap-2">
