@@ -37,6 +37,19 @@ function Results() {
     setHydrated(true);
   }, []);
 
+  // Sync catalog into Firestore (idempotent). Fire-and-forget.
+  useEffect(() => {
+    if (!schemes?.length) return;
+    const key = "scheme-sathi:schemes-synced";
+    if (typeof window !== "undefined" && sessionStorage.getItem(key)) return;
+    Promise.all(schemes.map((s) => syncSchemeToFirestore(s)))
+      .then(() => {
+        try { sessionStorage.setItem(key, "1"); } catch {}
+        console.log("[firestore] synced %d schemes", schemes.length);
+      })
+      .catch((e) => console.error("[firestore] scheme sync failed", e));
+  }, [schemes]);
+
   if (!hydrated) return <div className="mx-auto max-w-4xl px-4 py-16" />;
 
   if (!profile) {
