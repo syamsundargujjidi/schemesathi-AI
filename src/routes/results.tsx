@@ -9,8 +9,7 @@ import {
   type UserProfile,
   type Scheme,
 } from "@/lib/schemes";
-import { addDoc, collection, serverTimestamp } from "firebase/firestore";
-import { getDb } from "@/integrations/firebase/client";
+import { saveSchemesResult, syncSchemeToFirestore } from "@/integrations/firebase/user-store";
 import { useAuth } from "@/hooks/use-auth";
 
 export const Route = createFileRoute("/results")({
