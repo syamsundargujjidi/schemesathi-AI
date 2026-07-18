@@ -2,6 +2,8 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { ArrowLeft, ArrowRight, ClipboardCheck } from "lucide-react";
 import { INDIAN_STATES, OCCUPATIONS, type UserProfile } from "@/lib/schemes";
+import { getFirebaseAuth } from "@/integrations/firebase/client";
+import { updateUserProfile, upsertOccupation } from "@/integrations/firebase/user-store";
 
 export const Route = createFileRoute("/questionnaire")({
   head: () => ({
