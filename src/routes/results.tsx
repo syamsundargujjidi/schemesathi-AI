@@ -230,12 +230,7 @@ function SaveButton({ profile, schemeIds }: { profile: UserProfile; schemeIds: s
     setError(null);
     const label = `${profile.state} · Age ${profile.age} · ${profile.occupation}`;
     try {
-      await addDoc(collection(getDb(), "users", user.uid, "savedResults"), {
-        label,
-        profile,
-        scheme_ids: schemeIds,
-        created_at: serverTimestamp(),
-      });
+      await saveSchemesResult(user.uid, profile, schemeIds, label);
       setSaved(true);
     } catch (err: any) {
       setError(err?.message ?? "Failed to save");
