@@ -9,8 +9,7 @@ import {
   type UserProfile,
   type Scheme,
 } from "@/lib/schemes";
-import { addDoc, collection, serverTimestamp } from "firebase/firestore";
-import { getDb } from "@/integrations/firebase/client";
+import { saveSchemesResult, syncSchemeToFirestore } from "@/integrations/firebase/user-store";
 import { useAuth } from "@/hooks/use-auth";
 
 export const Route = createFileRoute("/results")({
@@ -37,6 +36,19 @@ function Results() {
     } catch {}
     setHydrated(true);
   }, []);
+
+  // Sync catalog into Firestore (idempotent). Fire-and-forget.
+  useEffect(() => {
+    if (!schemes?.length) return;
+    const key = "scheme-sathi:schemes-synced";
+    if (typeof window !== "undefined" && sessionStorage.getItem(key)) return;
+    Promise.all(schemes.map((s) => syncSchemeToFirestore(s)))
+      .then(() => {
+        try { sessionStorage.setItem(key, "1"); } catch {}
+        console.log("[firestore] synced %d schemes", schemes.length);
+      })
+      .catch((e) => console.error("[firestore] scheme sync failed", e));
+  }, [schemes]);
 
   if (!hydrated) return <div className="mx-auto max-w-4xl px-4 py-16" />;
 
@@ -231,12 +243,7 @@ function SaveButton({ profile, schemeIds }: { profile: UserProfile; schemeIds: s
     setError(null);
     const label = `${profile.state} · Age ${profile.age} · ${profile.occupation}`;
     try {
-      await addDoc(collection(getDb(), "users", user.uid, "savedResults"), {
-        label,
-        profile,
-        scheme_ids: schemeIds,
-        created_at: serverTimestamp(),
-      });
+      await saveSchemesResult(user.uid, profile, schemeIds, label);
       setSaved(true);
     } catch (err: any) {
       setError(err?.message ?? "Failed to save");

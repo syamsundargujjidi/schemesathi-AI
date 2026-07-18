@@ -2,6 +2,8 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { ArrowLeft, ArrowRight, ClipboardCheck } from "lucide-react";
 import { INDIAN_STATES, OCCUPATIONS, type UserProfile } from "@/lib/schemes";
+import { getFirebaseAuth } from "@/integrations/firebase/client";
+import { updateUserProfile, upsertOccupation } from "@/integrations/firebase/user-store";
 
 export const Route = createFileRoute("/questionnaire")({
   head: () => ({
@@ -69,6 +71,21 @@ function Questionnaire() {
     try {
       sessionStorage.setItem("yojana:profile", JSON.stringify(profile));
     } catch {}
+
+    // Fire-and-forget Firestore updates so navigation is instant.
+    const user = getFirebaseAuth().currentUser;
+    if (user) {
+      updateUserProfile(user.uid, profile).catch((e) =>
+        console.error("[questionnaire] updateUserProfile", e),
+      );
+      const occLabel = OCCUPATIONS.find((o) => o.value === occupation)?.label;
+      upsertOccupation(occupation, occLabel).catch((e) =>
+        console.error("[questionnaire] upsertOccupation", e),
+      );
+    } else {
+      console.log("[questionnaire] no user signed in; skipping Firestore write");
+    }
+
     navigate({ to: "/results" });
   }
 

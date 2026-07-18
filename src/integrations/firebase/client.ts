@@ -1,5 +1,4 @@
 // Firebase client for Scheme Sathi AI.
-// Public web config - safe to keep in source (secured via Firebase project rules).
 import { initializeApp, getApps, getApp, type FirebaseApp } from "firebase/app";
 import {
   getAuth,
@@ -9,6 +8,7 @@ import {
   type Auth,
 } from "firebase/auth";
 import { getFirestore, type Firestore } from "firebase/firestore";
+import { getDatabase, type Database } from "firebase/database";
 
 export const firebaseConfig = {
   apiKey: "AIzaSyDXYaZl9mKDjiu01ugAQ85UZqfuy7k3QCE",
@@ -25,6 +25,7 @@ export const firebaseConfig = {
 let _app: FirebaseApp | undefined;
 let _auth: Auth | undefined;
 let _db: Firestore | undefined;
+let _rtdb: Database | undefined;
 let _persistenceSet = false;
 
 function getFirebaseApp() {
@@ -38,7 +39,6 @@ export function getFirebaseAuth(): Auth {
   _auth = getAuth(getFirebaseApp());
   if (typeof window !== "undefined" && !_persistenceSet) {
     _persistenceSet = true;
-    // Keep users signed in across reloads.
     setPersistence(_auth, browserLocalPersistence).catch(() => {});
   }
   return _auth;
@@ -48,6 +48,12 @@ export function getDb(): Firestore {
   if (_db) return _db;
   _db = getFirestore(getFirebaseApp());
   return _db;
+}
+
+export function getRtDb(): Database {
+  if (_rtdb) return _rtdb;
+  _rtdb = getDatabase(getFirebaseApp());
+  return _rtdb;
 }
 
 export const googleProvider = new GoogleAuthProvider();

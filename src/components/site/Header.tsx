@@ -23,10 +23,10 @@ export function Header() {
         </nav>
         {user ? (
           <Link
-            to="/saved"
+            to="/profile"
             className="inline-flex h-9 items-center gap-1.5 rounded-full bg-primary px-4 text-sm font-semibold text-primary-foreground shadow-sm transition hover:brightness-110"
           >
-            <Bookmark className="h-4 w-4" /> My schemes
+            <Bookmark className="h-4 w-4" /> My profile
           </Link>
         ) : (
           <Link
