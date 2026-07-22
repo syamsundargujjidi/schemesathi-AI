@@ -138,10 +138,23 @@ function SchemesPage() {
 }
 
 function SchemeGrid({ schemes }: { schemes: Scheme[] }) {
+  const { user } = useAuth();
+  const [savedIds, setSavedIds] = useState<Set<string>>(new Set());
+
+  async function onSave(s: Scheme) {
+    if (!user) return;
+    await saveScheme(user.uid, s.id, s.name);
+    setSavedIds((prev) => new Set(prev).add(s.id));
+  }
+  function onView(s: Scheme) {
+    if (user) trackRecentScheme(user.uid, s.id, s.name);
+  }
+
   return (
     <div className="mt-6 grid gap-5 md:grid-cols-2 lg:grid-cols-3">
       {schemes.map((s) => {
         const mySchemeUrl = `https://www.myscheme.gov.in/search?q=${encodeURIComponent(s.name)}`;
+        const saved = savedIds.has(s.id);
         return (
           <article key={s.id} className="card-elevated flex flex-col p-6">
             <div className="flex flex-wrap items-center gap-2">
@@ -153,14 +166,24 @@ function SchemeGrid({ schemes }: { schemes: Scheme[] }) {
             {s.ministry && <p className="mt-2 line-clamp-1 text-xs text-muted-foreground">{s.ministry}</p>}
             <h3 className="mt-2 font-display text-lg font-bold">{s.name}</h3>
             <p className="mt-2 flex-1 text-sm text-muted-foreground">{s.short_description}</p>
-            <a
-              href={mySchemeUrl}
-              target="_blank"
-              rel="noreferrer"
-              className="mt-4 inline-flex items-center gap-1 text-sm font-semibold text-primary hover:underline"
-            >
-              Learn more <ArrowRight className="h-3.5 w-3.5" />
-            </a>
+            <div className="mt-4 flex items-center justify-between gap-2">
+              <a
+                href={mySchemeUrl}
+                target="_blank"
+                rel="noreferrer"
+                onClick={() => onView(s)}
+                className="inline-flex items-center gap-1 text-sm font-semibold text-primary hover:underline"
+              >
+                Learn more <ArrowRight className="h-3.5 w-3.5" />
+              </a>
+              <button
+                onClick={() => onSave(s)}
+                disabled={saved}
+                className="inline-flex items-center gap-1 rounded-full border border-input px-3 py-1.5 text-xs font-semibold hover:bg-secondary disabled:opacity-60"
+              >
+                {saved ? <><Check className="h-3 w-3" /> Saved</> : <><Bookmark className="h-3 w-3" /> Save</>}
+              </button>
+            </div>
           </article>
         );
       })}
