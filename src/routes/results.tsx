@@ -236,10 +236,21 @@ function SchemeGroups({ matches }: { matches: SchemeMatch[] }) {
 
 function SchemeCard({ match }: { match: SchemeMatch }) {
   const { t } = useTranslation();
+  const { user } = useAuth();
   const { scheme, eligible, reasons, confidence } = match;
   const [showDocs, setShowDocs] = useState(false);
+  const [savedOne, setSavedOne] = useState(false);
   const apply = myschemeUrl(scheme.name);
   const isValidUrl = scheme.apply_url && /^https?:\/\/.+\.(gov|nic)\.in/i.test(scheme.apply_url);
+
+  function onApplyClick() {
+    if (user) trackRecentScheme(user.uid, scheme.id, scheme.name);
+  }
+  async function onSaveOne() {
+    if (!user) return;
+    await saveScheme(user.uid, scheme.id, scheme.name);
+    setSavedOne(true);
+  }
 
   return (
     <article className="card-elevated flex flex-col p-6">
