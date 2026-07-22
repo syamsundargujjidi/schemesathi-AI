@@ -321,15 +321,24 @@ function SchemeCard({ match }: { match: SchemeMatch }) {
           href={apply}
           target="_blank"
           rel="noreferrer"
+          onClick={onApplyClick}
           className="inline-flex flex-1 items-center justify-center gap-2 rounded-full bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground transition hover:brightness-110"
         >
           {t("results.apply")} <ArrowRight className="h-4 w-4" />
         </a>
+        <button
+          onClick={onSaveOne}
+          disabled={savedOne}
+          className="inline-flex items-center justify-center gap-1.5 rounded-full border border-input px-3 py-2 text-xs font-semibold hover:bg-secondary disabled:opacity-60"
+        >
+          {savedOne ? <><Check className="h-3.5 w-3.5" /> Saved</> : <><Bookmark className="h-3.5 w-3.5" /> Save</>}
+        </button>
         {isValidUrl ? (
           <a
             href={scheme.apply_url!}
             target="_blank"
             rel="noreferrer"
+            onClick={onApplyClick}
             className="inline-flex items-center justify-center gap-2 rounded-full border border-input px-4 py-2.5 text-xs font-semibold hover:bg-secondary"
           >
             Official site <ExternalLink className="h-3.5 w-3.5" />
