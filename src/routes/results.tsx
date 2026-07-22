@@ -11,10 +11,15 @@ import {
   type UserProfile,
 } from "@/lib/schemes";
 import { rankMatches, myschemeUrl, type SchemeMatch } from "@/lib/matching";
-import { saveSchemesResult, syncSchemeToFirestore } from "@/integrations/firebase/user-store";
+import {
+  saveSchemesResult, saveScheme, syncSchemeToFirestore,
+  logEligibilityCheck, trackRecentScheme,
+} from "@/integrations/firebase/user-store";
 import { useAuth } from "@/hooks/use-auth";
+import { AuthGate } from "@/components/site/AuthGate";
 
 export const Route = createFileRoute("/results")({
+  ssr: false,
   loader: ({ context }) => context.queryClient.ensureQueryData(schemesQueryOptions),
   head: () => ({
     meta: [
@@ -23,7 +28,11 @@ export const Route = createFileRoute("/results")({
       { name: "robots", content: "noindex" },
     ],
   }),
-  component: Results,
+  component: () => (
+    <AuthGate feature="your personalised scheme matches">
+      <Results />
+    </AuthGate>
+  ),
 });
 
 function Results() {
@@ -33,6 +42,8 @@ function Results() {
   const [hydrated, setHydrated] = useState(false);
   const [category, setCategory] = useState<string>("all");
   const [scope, setScope] = useState<"all" | "central" | "state">("all");
+
+  const { user } = useAuth();
 
   useEffect(() => {
     try {
@@ -58,6 +69,17 @@ function Results() {
 
   const eligible = ranked.filter((m) => m.eligible);
   const related = ranked.filter((m) => !m.eligible && m.confidence >= 30).slice(0, 6);
+
+  // Log eligibility check once per profile+session
+  useEffect(() => {
+    if (!user || !profile || !ranked.length) return;
+    const key = `scheme-sathi:eligibility-logged:${user.uid}:${profile.age}:${profile.state}:${profile.occupation}`;
+    try {
+      if (sessionStorage.getItem(key)) return;
+      sessionStorage.setItem(key, "1");
+    } catch {}
+    logEligibilityCheck(user.uid, profile, eligible.map((m) => m.scheme.id));
+  }, [user, profile, ranked, eligible]);
 
   const categories = useMemo(() => {
     const set = new Set<string>();
@@ -214,10 +236,21 @@ function SchemeGroups({ matches }: { matches: SchemeMatch[] }) {
 
 function SchemeCard({ match }: { match: SchemeMatch }) {
   const { t } = useTranslation();
+  const { user } = useAuth();
   const { scheme, eligible, reasons, confidence } = match;
   const [showDocs, setShowDocs] = useState(false);
+  const [savedOne, setSavedOne] = useState(false);
   const apply = myschemeUrl(scheme.name);
   const isValidUrl = scheme.apply_url && /^https?:\/\/.+\.(gov|nic)\.in/i.test(scheme.apply_url);
+
+  function onApplyClick() {
+    if (user) trackRecentScheme(user.uid, scheme.id, scheme.name);
+  }
+  async function onSaveOne() {
+    if (!user) return;
+    await saveScheme(user.uid, scheme.id, scheme.name);
+    setSavedOne(true);
+  }
 
   return (
     <article className="card-elevated flex flex-col p-6">
@@ -288,15 +321,24 @@ function SchemeCard({ match }: { match: SchemeMatch }) {
           href={apply}
           target="_blank"
           rel="noreferrer"
+          onClick={onApplyClick}
           className="inline-flex flex-1 items-center justify-center gap-2 rounded-full bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground transition hover:brightness-110"
         >
           {t("results.apply")} <ArrowRight className="h-4 w-4" />
         </a>
+        <button
+          onClick={onSaveOne}
+          disabled={savedOne}
+          className="inline-flex items-center justify-center gap-1.5 rounded-full border border-input px-3 py-2 text-xs font-semibold hover:bg-secondary disabled:opacity-60"
+        >
+          {savedOne ? <><Check className="h-3.5 w-3.5" /> Saved</> : <><Bookmark className="h-3.5 w-3.5" /> Save</>}
+        </button>
         {isValidUrl ? (
           <a
             href={scheme.apply_url!}
             target="_blank"
             rel="noreferrer"
+            onClick={onApplyClick}
             className="inline-flex items-center justify-center gap-2 rounded-full border border-input px-4 py-2.5 text-xs font-semibold hover:bg-secondary"
           >
             Official site <ExternalLink className="h-3.5 w-3.5" />

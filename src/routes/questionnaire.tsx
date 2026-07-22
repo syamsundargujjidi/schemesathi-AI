@@ -4,8 +4,10 @@ import { ArrowLeft, ArrowRight, ClipboardCheck } from "lucide-react";
 import { INDIAN_STATES, OCCUPATIONS, type UserProfile } from "@/lib/schemes";
 import { getFirebaseAuth } from "@/integrations/firebase/client";
 import { updateUserProfile, upsertOccupation } from "@/integrations/firebase/user-store";
+import { AuthGate } from "@/components/site/AuthGate";
 
 export const Route = createFileRoute("/questionnaire")({
+  ssr: false,
   head: () => ({
     meta: [
       { title: "Check Your Eligibility — Scheme Sathi AI" },
@@ -14,7 +16,11 @@ export const Route = createFileRoute("/questionnaire")({
       { property: "og:description", content: "Answer a few quick steps to instantly find Central & State schemes you qualify for." },
     ],
   }),
-  component: Questionnaire,
+  component: () => (
+    <AuthGate feature="the eligibility questionnaire">
+      <Questionnaire />
+    </AuthGate>
+  ),
 });
 
 type Step = 0 | 1 | 2 | 3;

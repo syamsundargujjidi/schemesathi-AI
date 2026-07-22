@@ -1,10 +1,14 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useSuspenseQuery } from "@tanstack/react-query";
-import { useState, useMemo } from "react";
-import { Search, ArrowRight } from "lucide-react";
+import { useState, useMemo, useEffect } from "react";
+import { Search, ArrowRight, Bookmark, Check } from "lucide-react";
 import { schemesQueryOptions, type Scheme } from "@/lib/schemes";
+import { AuthGate } from "@/components/site/AuthGate";
+import { useAuth } from "@/hooks/use-auth";
+import { saveScheme, trackRecentScheme, trackSearch } from "@/integrations/firebase/user-store";
 
 export const Route = createFileRoute("/schemes")({
+  ssr: false,
   loader: ({ context }) => context.queryClient.ensureQueryData(schemesQueryOptions),
   head: () => ({
     meta: [
@@ -14,15 +18,30 @@ export const Route = createFileRoute("/schemes")({
       { property: "og:description", content: "Explore every Central & State government welfare scheme in our catalog." },
     ],
   }),
-  component: SchemesPage,
+  component: () => (
+    <AuthGate feature="the schemes catalog">
+      <SchemesPage />
+    </AuthGate>
+  ),
 });
 
 function SchemesPage() {
   const { data: schemes } = useSuspenseQuery(schemesQueryOptions);
+  const { user } = useAuth();
   const [q, setQ] = useState("");
   const [tag, setTag] = useState<string | null>(null);
   const [scope, setScope] = useState<"all" | "central" | "state">("all");
   const [stateFilter, setStateFilter] = useState<string | null>(null);
+
+  // Debounced search history logging
+  useEffect(() => {
+    if (!user) return;
+    if (!q && !tag && scope === "all") return;
+    const h = setTimeout(() => {
+      trackSearch(user.uid, q, { tag, scope, stateFilter });
+    }, 900);
+    return () => clearTimeout(h);
+  }, [user, q, tag, scope, stateFilter]);
 
   const allTags = useMemo(() => {
     const set = new Set<string>();
@@ -119,10 +138,23 @@ function SchemesPage() {
 }
 
 function SchemeGrid({ schemes }: { schemes: Scheme[] }) {
+  const { user } = useAuth();
+  const [savedIds, setSavedIds] = useState<Set<string>>(new Set());
+
+  async function onSave(s: Scheme) {
+    if (!user) return;
+    await saveScheme(user.uid, s.id, s.name);
+    setSavedIds((prev) => new Set(prev).add(s.id));
+  }
+  function onView(s: Scheme) {
+    if (user) trackRecentScheme(user.uid, s.id, s.name);
+  }
+
   return (
     <div className="mt-6 grid gap-5 md:grid-cols-2 lg:grid-cols-3">
       {schemes.map((s) => {
         const mySchemeUrl = `https://www.myscheme.gov.in/search?q=${encodeURIComponent(s.name)}`;
+        const saved = savedIds.has(s.id);
         return (
           <article key={s.id} className="card-elevated flex flex-col p-6">
             <div className="flex flex-wrap items-center gap-2">
@@ -134,14 +166,24 @@ function SchemeGrid({ schemes }: { schemes: Scheme[] }) {
             {s.ministry && <p className="mt-2 line-clamp-1 text-xs text-muted-foreground">{s.ministry}</p>}
             <h3 className="mt-2 font-display text-lg font-bold">{s.name}</h3>
             <p className="mt-2 flex-1 text-sm text-muted-foreground">{s.short_description}</p>
-            <a
-              href={mySchemeUrl}
-              target="_blank"
-              rel="noreferrer"
-              className="mt-4 inline-flex items-center gap-1 text-sm font-semibold text-primary hover:underline"
-            >
-              Learn more <ArrowRight className="h-3.5 w-3.5" />
-            </a>
+            <div className="mt-4 flex items-center justify-between gap-2">
+              <a
+                href={mySchemeUrl}
+                target="_blank"
+                rel="noreferrer"
+                onClick={() => onView(s)}
+                className="inline-flex items-center gap-1 text-sm font-semibold text-primary hover:underline"
+              >
+                Learn more <ArrowRight className="h-3.5 w-3.5" />
+              </a>
+              <button
+                onClick={() => onSave(s)}
+                disabled={saved}
+                className="inline-flex items-center gap-1 rounded-full border border-input px-3 py-1.5 text-xs font-semibold hover:bg-secondary disabled:opacity-60"
+              >
+                {saved ? <><Check className="h-3 w-3" /> Saved</> : <><Bookmark className="h-3 w-3" /> Save</>}
+              </button>
+            </div>
           </article>
         );
       })}

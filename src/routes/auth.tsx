@@ -7,7 +7,17 @@ import {
   onAuthStateChanged,
 } from "firebase/auth";
 import { getFirebaseAuth } from "@/integrations/firebase/client";
-import { ensureUserDoc } from "@/integrations/firebase/user-store";
+import { ensureUserDoc, getUserDoc } from "@/integrations/firebase/user-store";
+
+async function routeAfterAuth(uid: string, navigate: ReturnType<typeof useNavigate>) {
+  const doc = await getUserDoc(uid);
+  if (!doc || doc.profileCompleted === false) {
+    navigate({ to: "/complete-profile" });
+  } else {
+    navigate({ to: "/dashboard" });
+  }
+}
+
 
 export const Route = createFileRoute("/auth")({
   ssr: false,
@@ -33,7 +43,7 @@ function AuthPage() {
   useEffect(() => {
     const auth = getFirebaseAuth();
     const unsub = onAuthStateChanged(auth, (u) => {
-      if (u) navigate({ to: "/profile" });
+      if (u) routeAfterAuth(u.uid, navigate);
     });
     return () => unsub();
   }, [navigate]);
@@ -65,7 +75,7 @@ function AuthPage() {
         cred = await createUserWithEmailAndPassword(auth, email, password);
       }
       await ensureUserDoc(cred.user, mode === "sign_up");
-      navigate({ to: "/profile" });
+      await routeAfterAuth(cred.user.uid, navigate);
     } catch (err: any) {
       setError(prettyError(err));
     } finally {

@@ -1,5 +1,5 @@
 import { Link } from "@tanstack/react-router";
-import { ShieldCheck, Bookmark } from "lucide-react";
+import { ShieldCheck, LayoutDashboard } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { useAuth } from "@/hooks/use-auth";
 import { LanguageSelector } from "@/components/site/LanguageSelector";
@@ -28,10 +28,10 @@ export function Header() {
           <LanguageSelector />
           {user ? (
             <Link
-              to="/profile"
+              to="/dashboard"
               className="inline-flex h-9 items-center gap-1.5 rounded-full bg-primary px-3 text-sm font-semibold text-primary-foreground shadow-sm transition hover:brightness-110 sm:px-4"
             >
-              <Bookmark className="h-4 w-4" /> <span className="hidden sm:inline">{t("nav.profile")}</span>
+              <LayoutDashboard className="h-4 w-4" /> <span className="hidden sm:inline">Dashboard</span>
             </Link>
           ) : (
             <Link
