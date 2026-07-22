@@ -27,10 +27,21 @@ export const Route = createFileRoute("/schemes")({
 
 function SchemesPage() {
   const { data: schemes } = useSuspenseQuery(schemesQueryOptions);
+  const { user } = useAuth();
   const [q, setQ] = useState("");
   const [tag, setTag] = useState<string | null>(null);
   const [scope, setScope] = useState<"all" | "central" | "state">("all");
   const [stateFilter, setStateFilter] = useState<string | null>(null);
+
+  // Debounced search history logging
+  useEffect(() => {
+    if (!user) return;
+    if (!q && !tag && scope === "all") return;
+    const h = setTimeout(() => {
+      trackSearch(user.uid, q, { tag, scope, stateFilter });
+    }, 900);
+    return () => clearTimeout(h);
+  }, [user, q, tag, scope, stateFilter]);
 
   const allTags = useMemo(() => {
     const set = new Set<string>();
