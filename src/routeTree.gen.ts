@@ -18,6 +18,8 @@ import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedSavedRouteImport } from './routes/_authenticated/saved'
 import { Route as AuthenticatedProfileRouteImport } from './routes/_authenticated/profile'
+import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
+import { Route as AuthenticatedCompleteProfileRouteImport } from './routes/_authenticated/complete-profile'
 
 const SchemesRoute = SchemesRouteImport.update({
   id: '/schemes',
@@ -63,6 +65,17 @@ const AuthenticatedProfileRoute = AuthenticatedProfileRouteImport.update({
   path: '/profile',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
+  id: '/dashboard',
+  path: '/dashboard',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedCompleteProfileRoute =
+  AuthenticatedCompleteProfileRouteImport.update({
+    id: '/complete-profile',
+    path: '/complete-profile',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -71,6 +84,8 @@ export interface FileRoutesByFullPath {
   '/questionnaire': typeof QuestionnaireRoute
   '/results': typeof ResultsRoute
   '/schemes': typeof SchemesRoute
+  '/complete-profile': typeof AuthenticatedCompleteProfileRoute
+  '/dashboard': typeof AuthenticatedDashboardRoute
   '/profile': typeof AuthenticatedProfileRoute
   '/saved': typeof AuthenticatedSavedRoute
 }
@@ -81,6 +96,8 @@ export interface FileRoutesByTo {
   '/questionnaire': typeof QuestionnaireRoute
   '/results': typeof ResultsRoute
   '/schemes': typeof SchemesRoute
+  '/complete-profile': typeof AuthenticatedCompleteProfileRoute
+  '/dashboard': typeof AuthenticatedDashboardRoute
   '/profile': typeof AuthenticatedProfileRoute
   '/saved': typeof AuthenticatedSavedRoute
 }
@@ -93,6 +110,8 @@ export interface FileRoutesById {
   '/questionnaire': typeof QuestionnaireRoute
   '/results': typeof ResultsRoute
   '/schemes': typeof SchemesRoute
+  '/_authenticated/complete-profile': typeof AuthenticatedCompleteProfileRoute
+  '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/_authenticated/profile': typeof AuthenticatedProfileRoute
   '/_authenticated/saved': typeof AuthenticatedSavedRoute
 }
@@ -105,6 +124,8 @@ export interface FileRouteTypes {
     | '/questionnaire'
     | '/results'
     | '/schemes'
+    | '/complete-profile'
+    | '/dashboard'
     | '/profile'
     | '/saved'
   fileRoutesByTo: FileRoutesByTo
@@ -115,6 +136,8 @@ export interface FileRouteTypes {
     | '/questionnaire'
     | '/results'
     | '/schemes'
+    | '/complete-profile'
+    | '/dashboard'
     | '/profile'
     | '/saved'
   id:
@@ -126,6 +149,8 @@ export interface FileRouteTypes {
     | '/questionnaire'
     | '/results'
     | '/schemes'
+    | '/_authenticated/complete-profile'
+    | '/_authenticated/dashboard'
     | '/_authenticated/profile'
     | '/_authenticated/saved'
   fileRoutesById: FileRoutesById
@@ -205,15 +230,33 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedProfileRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/dashboard': {
+      id: '/_authenticated/dashboard'
+      path: '/dashboard'
+      fullPath: '/dashboard'
+      preLoaderRoute: typeof AuthenticatedDashboardRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/complete-profile': {
+      id: '/_authenticated/complete-profile'
+      path: '/complete-profile'
+      fullPath: '/complete-profile'
+      preLoaderRoute: typeof AuthenticatedCompleteProfileRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
   }
 }
 
 interface AuthenticatedRouteRouteChildren {
+  AuthenticatedCompleteProfileRoute: typeof AuthenticatedCompleteProfileRoute
+  AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
   AuthenticatedProfileRoute: typeof AuthenticatedProfileRoute
   AuthenticatedSavedRoute: typeof AuthenticatedSavedRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
+  AuthenticatedCompleteProfileRoute: AuthenticatedCompleteProfileRoute,
+  AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
   AuthenticatedProfileRoute: AuthenticatedProfileRoute,
   AuthenticatedSavedRoute: AuthenticatedSavedRoute,
 }

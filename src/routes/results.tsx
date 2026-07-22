@@ -11,10 +11,15 @@ import {
   type UserProfile,
 } from "@/lib/schemes";
 import { rankMatches, myschemeUrl, type SchemeMatch } from "@/lib/matching";
-import { saveSchemesResult, syncSchemeToFirestore } from "@/integrations/firebase/user-store";
+import {
+  saveSchemesResult, saveScheme, syncSchemeToFirestore,
+  logEligibilityCheck, trackRecentScheme,
+} from "@/integrations/firebase/user-store";
 import { useAuth } from "@/hooks/use-auth";
+import { AuthGate } from "@/components/site/AuthGate";
 
 export const Route = createFileRoute("/results")({
+  ssr: false,
   loader: ({ context }) => context.queryClient.ensureQueryData(schemesQueryOptions),
   head: () => ({
     meta: [
@@ -23,7 +28,11 @@ export const Route = createFileRoute("/results")({
       { name: "robots", content: "noindex" },
     ],
   }),
-  component: Results,
+  component: () => (
+    <AuthGate feature="your personalised scheme matches">
+      <Results />
+    </AuthGate>
+  ),
 });
 
 function Results() {
