@@ -43,6 +43,8 @@ function Results() {
   const [category, setCategory] = useState<string>("all");
   const [scope, setScope] = useState<"all" | "central" | "state">("all");
 
+  const { user } = useAuth();
+
   useEffect(() => {
     try {
       const raw = sessionStorage.getItem("yojana:profile");
@@ -67,6 +69,17 @@ function Results() {
 
   const eligible = ranked.filter((m) => m.eligible);
   const related = ranked.filter((m) => !m.eligible && m.confidence >= 30).slice(0, 6);
+
+  // Log eligibility check once per profile+session
+  useEffect(() => {
+    if (!user || !profile || !ranked.length) return;
+    const key = `scheme-sathi:eligibility-logged:${user.uid}:${profile.age}:${profile.state}:${profile.occupation}`;
+    try {
+      if (sessionStorage.getItem(key)) return;
+      sessionStorage.setItem(key, "1");
+    } catch {}
+    logEligibilityCheck(user.uid, profile, eligible.map((m) => m.scheme.id));
+  }, [user, profile, ranked, eligible]);
 
   const categories = useMemo(() => {
     const set = new Set<string>();
