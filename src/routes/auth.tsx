@@ -43,7 +43,7 @@ function AuthPage() {
   useEffect(() => {
     const auth = getFirebaseAuth();
     const unsub = onAuthStateChanged(auth, (u) => {
-      if (u) navigate({ to: "/profile" });
+      if (u) routeAfterAuth(u.uid, navigate);
     });
     return () => unsub();
   }, [navigate]);
@@ -75,7 +75,7 @@ function AuthPage() {
         cred = await createUserWithEmailAndPassword(auth, email, password);
       }
       await ensureUserDoc(cred.user, mode === "sign_up");
-      navigate({ to: "/profile" });
+      await routeAfterAuth(cred.user.uid, navigate);
     } catch (err: any) {
       setError(prettyError(err));
     } finally {
