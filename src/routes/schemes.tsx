@@ -1,10 +1,14 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useSuspenseQuery } from "@tanstack/react-query";
-import { useState, useMemo } from "react";
-import { Search, ArrowRight } from "lucide-react";
+import { useState, useMemo, useEffect } from "react";
+import { Search, ArrowRight, Bookmark, Check } from "lucide-react";
 import { schemesQueryOptions, type Scheme } from "@/lib/schemes";
+import { AuthGate } from "@/components/site/AuthGate";
+import { useAuth } from "@/hooks/use-auth";
+import { saveScheme, trackRecentScheme, trackSearch } from "@/integrations/firebase/user-store";
 
 export const Route = createFileRoute("/schemes")({
+  ssr: false,
   loader: ({ context }) => context.queryClient.ensureQueryData(schemesQueryOptions),
   head: () => ({
     meta: [
@@ -14,7 +18,11 @@ export const Route = createFileRoute("/schemes")({
       { property: "og:description", content: "Explore every Central & State government welfare scheme in our catalog." },
     ],
   }),
-  component: SchemesPage,
+  component: () => (
+    <AuthGate feature="the schemes catalog">
+      <SchemesPage />
+    </AuthGate>
+  ),
 });
 
 function SchemesPage() {
