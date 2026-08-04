@@ -243,6 +243,9 @@ function SchemeCard({ match }: { match: SchemeMatch }) {
   const { scheme, eligible, reasons, confidence } = match;
   const [showDocs, setShowDocs] = useState(false);
   const [savedOne, setSavedOne] = useState(false);
+  const [explaining, setExplaining] = useState(false);
+  const [explanation, setExplanation] = useState<string | null>(null);
+  const { i18n } = useTranslation();
   const apply = myschemeUrl(scheme.name);
   const isValidUrl = scheme.apply_url && /^https?:\/\/.+\.(gov|nic)\.in/i.test(scheme.apply_url);
 
@@ -253,6 +256,31 @@ function SchemeCard({ match }: { match: SchemeMatch }) {
     if (!user) return;
     await saveScheme(user.uid, scheme.id, scheme.name);
     setSavedOne(true);
+  }
+  async function onExplain() {
+    if (explanation) { setExplanation(null); return; }
+    setExplaining(true);
+    let profile: Record<string, unknown> = {};
+    try { profile = JSON.parse(sessionStorage.getItem("yojana:profile") || "{}"); } catch {}
+    try {
+      const res = await explainScheme({
+        data: {
+          schemeName: scheme.name,
+          state: scheme.state,
+          benefits: scheme.benefits ?? "",
+          documents: scheme.documents ?? [],
+          applyUrl: (scheme as any).official_website || scheme.apply_url || "",
+          eligible,
+          profile,
+          lang: i18n.language,
+        },
+      });
+      setExplanation(res.explanation);
+    } catch (e: any) {
+      setExplanation(`Could not load AI explanation. ${e?.message ?? ""}`);
+    } finally {
+      setExplaining(false);
+    }
   }
 
   return (
