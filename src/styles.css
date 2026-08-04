@@ -189,3 +189,26 @@ html.hc {
 html.hc a, html.hc button { text-decoration-thickness: 2px; }
 
 
+
+/* Occupation-based hero themes (set on the hero section wrapper) */
+.persona-default { --persona-tint: oklch(0.28 0.06 250 / 0.82); --persona-glow: oklch(0.7 0.15 158 / 0.35); }
+.persona-farmer  { --persona-tint: oklch(0.32 0.09 150 / 0.78); --persona-glow: oklch(0.75 0.17 140 / 0.4); }
+.persona-student { --persona-tint: oklch(0.32 0.11 250 / 0.78); --persona-glow: oklch(0.7 0.16 245 / 0.4); }
+.persona-worker  { --persona-tint: oklch(0.34 0.12 55 / 0.78);  --persona-glow: oklch(0.78 0.17 60 / 0.4); }
+.persona-women   { --persona-tint: oklch(0.32 0.13 305 / 0.78); --persona-glow: oklch(0.72 0.18 310 / 0.4); }
+.persona-senior  { --persona-tint: oklch(0.38 0.06 235 / 0.76); --persona-glow: oklch(0.82 0.09 235 / 0.4); }
+.persona-business{ --persona-tint: oklch(0.22 0.08 265 / 0.84); --persona-glow: oklch(0.6 0.14 265 / 0.4); }
+.persona-inclusive{--persona-tint: oklch(0.32 0.09 200 / 0.78); --persona-glow: oklch(0.78 0.14 195 / 0.4); }
+
+.persona-hero { position: relative; isolation: isolate; }
+.persona-hero .persona-image {
+  position: absolute; inset: 0; width: 100%; height: 100%;
+  object-fit: cover; z-index: -2;
+}
+.persona-hero .persona-overlay {
+  position: absolute; inset: 0; z-index: -1;
+  background:
+    radial-gradient(circle at 20% 20%, var(--persona-glow), transparent 45%),
+    var(--persona-tint);
+  transition: background 400ms ease;
+}
