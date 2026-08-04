@@ -8,6 +8,9 @@ export type MatchReason =
   | "stateMatches"
   | "occupationMatches"
   | "disabilityMatches"
+  | "educationMatches"
+  | "casteMatches"
+  | "areaMatches"
   | "popular";
 
 export type SchemeMatch = {
@@ -16,6 +19,11 @@ export type SchemeMatch = {
   reasons: MatchReason[];
   confidence: number; // 0..100
 };
+
+/** A scheme belonging to a different state must never be shown to the user. */
+export function belongsToUser(scheme: Scheme, p: UserProfile): boolean {
+  return !scheme.state || scheme.state === p.state;
+}
 
 export function evaluateScheme(scheme: Scheme, p: UserProfile): SchemeMatch {
   const reasons: MatchReason[] = [];
