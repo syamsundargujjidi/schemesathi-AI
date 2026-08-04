@@ -11,6 +11,7 @@ import {
   type UserProfile,
 } from "@/lib/schemes";
 import { rankMatches, myschemeUrl, type SchemeMatch } from "@/lib/matching";
+import { explainScheme } from "@/lib/ai.functions";
 import {
   saveSchemesResult, saveScheme, syncSchemeToFirestore,
   logEligibilityCheck, trackRecentScheme,
