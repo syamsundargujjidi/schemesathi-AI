@@ -1,11 +1,51 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useSuspenseQuery } from "@tanstack/react-query";
+import { useEffect, useState } from "react";
 import {
   ArrowRight, Sparkles, ClipboardList, Zap, FileCheck2,
   ShieldCheck, Users, Landmark, HeartHandshake, BookOpen, Lightbulb,
 } from "lucide-react";
 
 import { schemesQueryOptions } from "@/lib/schemes";
+import farmerBg from "@/assets/theme-farmer.jpg";
+import studentBg from "@/assets/theme-student.jpg";
+import workerBg from "@/assets/theme-worker.jpg";
+import womenBg from "@/assets/theme-women.jpg";
+import seniorBg from "@/assets/theme-senior.jpg";
+import businessBg from "@/assets/theme-business.jpg";
+import inclusiveBg from "@/assets/theme-inclusive.jpg";
+
+type Persona = {
+  key: string;
+  label: string;
+  image: string;
+  alt: string;
+  tagline: string;
+};
+
+const PERSONAS: Persona[] = [
+  { key: "farmer", label: "Farmer", image: farmerBg, alt: "Green paddy fields at sunrise with an Indian farmer and tractor", tagline: "Income support, crop insurance and irrigation schemes for farmers." },
+  { key: "student", label: "Student", image: studentBg, alt: "Indian college campus with students walking", tagline: "Scholarships, fee reimbursement and skilling schemes for students." },
+  { key: "worker", label: "Worker", image: workerBg, alt: "Indian construction and factory workers in safety helmets", tagline: "Wage support, pension and insurance for workers and labourers." },
+  { key: "women", label: "Women", image: womenBg, alt: "Indian women self-help group entrepreneurs", tagline: "Empowerment, self-help group and entrepreneurship schemes for women." },
+  { key: "senior", label: "Senior Citizen", image: seniorBg, alt: "Indian elderly couple with a healthcare worker", tagline: "Pension, healthcare and elderly care schemes for senior citizens." },
+  { key: "business", label: "Business Owner", image: businessBg, alt: "Modern Indian small business startup office", tagline: "MUDRA loans, credit guarantee and MSME support for business owners." },
+  { key: "inclusive", label: "Differently Abled", image: inclusiveBg, alt: "Inclusive accessible Indian workplace", tagline: "Accessibility, assistive devices and inclusive employment schemes." },
+];
+
+/** Map questionnaire occupations to a homepage persona theme. */
+const OCCUPATION_PERSONA: Record<string, string> = {
+  farmer: "farmer",
+  student: "student",
+  labour: "worker",
+  "unorganised-worker": "worker",
+  "street-vendor": "worker",
+  salaried: "worker",
+  "self-employed": "business",
+  entrepreneur: "business",
+  business: "business",
+  unemployed: "student",
+};
 
 export const Route = createFileRoute("/")({
   loader: ({ context }) => context.queryClient.ensureQueryData(schemesQueryOptions),
@@ -15,14 +55,38 @@ export const Route = createFileRoute("/")({
 function Home() {
   const { data: schemes } = useSuspenseQuery(schemesQueryOptions);
   const popular = schemes.filter((s) => s.is_popular).slice(0, 6);
+  const [personaKey, setPersonaKey] = useState<string | null>(null);
+
+  // Pick up the persona from the last completed questionnaire, if any.
+  useEffect(() => {
+    try {
+      const raw = sessionStorage.getItem("yojana:profile");
+      if (!raw) return;
+      const p = JSON.parse(raw) as { occupation?: string; gender?: string; age?: number; hasDisability?: boolean };
+      let key = p.occupation ? OCCUPATION_PERSONA[p.occupation] : undefined;
+      if (p.hasDisability) key = "inclusive";
+      else if (p.age && p.age >= 60) key = "senior";
+      else if (!key && p.gender === "female") key = "women";
+      if (key) setPersonaKey(key);
+    } catch {}
+  }, []);
+
+  const persona = PERSONAS.find((p) => p.key === personaKey);
 
   return (
     <>
       {/* Hero */}
-      <section className="hero-gradient relative overflow-hidden text-white">
-        <div className="absolute inset-0 opacity-30" style={{
-          backgroundImage: "radial-gradient(circle at 20% 20%, oklch(0.7 0.15 158 / 0.35), transparent 40%), radial-gradient(circle at 80% 60%, oklch(0.5 0.15 250 / 0.4), transparent 45%)",
-        }} />
+      <section className={`persona-hero overflow-hidden text-white persona-${persona?.key ?? "default"} ${persona ? "" : "hero-gradient"}`}>
+        {persona && (
+          <img
+            src={persona.image}
+            alt={persona.alt}
+            className="persona-image"
+            width={1536}
+            height={768}
+          />
+        )}
+        <div className="persona-overlay" />
         <div className="relative mx-auto max-w-6xl px-4 py-20 md:py-28">
           <div className="mx-auto max-w-3xl text-center">
             <span className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-4 py-1.5 text-xs font-medium backdrop-blur">
@@ -33,9 +97,29 @@ function Home() {
               <span className="text-gradient-brand">You Deserve</span>
             </h1>
             <p className="mx-auto mt-5 max-w-2xl text-base text-white/80 sm:text-lg">
-              Answer a few simple questions and instantly find Central & State
-              welfare schemes you're eligible for. 100% free, always.
+              {persona
+                ? persona.tagline
+                : "Answer a few simple questions and instantly find Central & State welfare schemes you're eligible for. 100% free, always."}
             </p>
+
+            {/* Persona switcher — changes the homepage theme */}
+            <div className="mt-7 flex flex-wrap justify-center gap-2">
+              {PERSONAS.map((p) => (
+                <button
+                  key={p.key}
+                  onClick={() => setPersonaKey(personaKey === p.key ? null : p.key)}
+                  aria-pressed={personaKey === p.key}
+                  className={`rounded-full border px-3.5 py-1.5 text-xs font-semibold backdrop-blur transition ${
+                    personaKey === p.key
+                      ? "border-white bg-white/90 text-foreground"
+                      : "border-white/25 bg-white/10 text-white hover:bg-white/20"
+                  }`}
+                >
+                  {p.label}
+                </button>
+              ))}
+            </div>
+
             <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
               <Link
                 to="/questionnaire"
