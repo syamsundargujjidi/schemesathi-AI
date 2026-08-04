@@ -74,6 +74,8 @@ function Questionnaire() {
       areaType: areaType as UserProfile["areaType"],
       annualIncome: Number(annualIncome),
       occupation,
+      education: education || undefined,
+      caste: caste || undefined,
       parentOccupation: (parentOccupation || undefined) as UserProfile["parentOccupation"],
     };
     try {
