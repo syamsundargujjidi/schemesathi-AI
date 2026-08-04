@@ -322,36 +322,55 @@ async function bumpSchemeStat(schemeId: string, kind: "viewed" | "saved") {
   } catch {}
 }
 
-/** Idempotent write of a scheme record into the top-level schemes collection. */
+/** central_schemes / <state>_schemes collection name for a scheme. */
+export function schemeCollectionName(state?: string | null): string {
+  if (!state) return "central_schemes";
+  return `${state.toLowerCase().replace(/&/g, "and").replace(/[^a-z0-9]+/g, "_").replace(/^_|_$/g, "")}_schemes`;
+}
+
+/** Idempotent write of a scheme record into the top-level + per-state collections. */
 export async function syncSchemeToFirestore(scheme: any) {
   try {
     const id = scheme.slug || scheme.id;
     if (!id) return;
-    await setDoc(
-      doc(getDb(), "schemes", String(id)),
-      clean({
-        slug: scheme.slug,
-        schemeName: scheme.name,
-        name: scheme.name,
-        category: scheme.category,
-        state: scheme.state,
-        ministry: scheme.ministry,
-        description: scheme.short_description,
-        short_description: scheme.short_description,
-        benefits: scheme.benefits,
-        documents: scheme.documents ?? [],
-        officialWebsite: scheme.apply_url,
-        officialApplicationLink: scheme.apply_url,
-        apply_url: scheme.apply_url,
-        eligibility: scheme.eligibility ?? null,
-        tags: scheme.tags ?? [],
-        featured: !!scheme.is_popular,
-        popular: !!scheme.is_popular,
-        lastUpdated: serverTimestamp(),
-        createdAt: serverTimestamp(),
-      }),
-      { merge: true },
-    );
+    const payload = clean({
+      slug: scheme.slug,
+      schemeName: scheme.name,
+      name: scheme.name,
+      category: scheme.category,
+      state: scheme.state || "Central",
+      department: scheme.department || scheme.ministry,
+      ministry: scheme.ministry,
+      description: scheme.short_description,
+      short_description: scheme.short_description,
+      eligibility: {
+        minAge: scheme.min_age ?? null,
+        maxAge: scheme.max_age ?? null,
+        gender: scheme.gender ?? "any",
+        maxAnnualIncome: scheme.max_annual_income ?? null,
+        occupations: scheme.occupations ?? [],
+        educationLevels: scheme.education_levels ?? [],
+        casteCategories: scheme.caste_categories ?? [],
+        areaType: scheme.area_type ?? "any",
+        disabilityRequired: !!scheme.disability_required,
+      },
+      benefits: scheme.benefits,
+      requiredDocuments: scheme.documents ?? [],
+      documents: scheme.documents ?? [],
+      officialWebsite: scheme.official_website || scheme.apply_url,
+      applyLink: scheme.apply_url,
+      apply_url: scheme.apply_url,
+      tags: scheme.tags ?? [],
+      featured: !!scheme.is_popular,
+      popular: !!scheme.is_popular,
+      lastUpdated: serverTimestamp(),
+      createdAt: serverTimestamp(),
+    });
+    const col = schemeCollectionName(scheme.state);
+    await Promise.all([
+      setDoc(doc(getDb(), "schemes", String(id)), payload, { merge: true }),
+      setDoc(doc(getDb(), col, String(id)), payload, { merge: true }),
+    ]);
   } catch (err) {
     console.error("[firestore] syncSchemeToFirestore failed", err);
   }

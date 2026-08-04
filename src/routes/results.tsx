@@ -136,6 +136,7 @@ function Results() {
         {[
           `Age ${profile.age}`, profile.gender, profile.state, profile.areaType,
           `Income ₹${profile.annualIncome.toLocaleString("en-IN")}`,
+          profile.education ?? null, profile.caste ? profile.caste.toUpperCase() : null,
           profile.hasDisability ? "PwD" : null, profile.occupation,
           profile.parentOccupation && profile.parentOccupation !== "na" ? `Parent: ${profile.parentOccupation}` : null,
         ].filter(Boolean).map((t) => (
