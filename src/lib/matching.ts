@@ -100,6 +100,42 @@ export function evaluateScheme(scheme: Scheme, p: UserProfile): SchemeMatch {
     }
   }
 
+  // Area type (urban / rural)
+  const schemeArea = (scheme as any).area_type as string | undefined;
+  if (schemeArea && schemeArea !== "any") {
+    hardTotal++;
+    if (schemeArea === p.areaType) {
+      hardHits++;
+      reasons.push("areaMatches");
+    } else {
+      eligible = false;
+    }
+  }
+
+  // Education level
+  const eduLevels = ((scheme as any).education_levels ?? []) as string[];
+  if (eduLevels.length > 0) {
+    hardTotal++;
+    if (!p.education || eduLevels.includes("any") || eduLevels.includes(p.education)) {
+      hardHits++;
+      if (p.education) reasons.push("educationMatches");
+    } else {
+      eligible = false;
+    }
+  }
+
+  // Caste category
+  const castes = ((scheme as any).caste_categories ?? []) as string[];
+  if (castes.length > 0) {
+    hardTotal++;
+    if (!p.caste || castes.includes("any") || castes.includes(p.caste)) {
+      hardHits++;
+      if (p.caste) reasons.push("casteMatches");
+    } else {
+      eligible = false;
+    }
+  }
+
   if (scheme.is_popular) reasons.push("popular");
 
   // Confidence: base 60 for eligible, distributed by how many criteria we could
@@ -110,7 +146,8 @@ export function evaluateScheme(scheme: Scheme, p: UserProfile): SchemeMatch {
     const base = 60;
     const bonus = hardTotal === 0 ? 20 : Math.round((hardHits / hardTotal) * 35);
     const popularity = scheme.is_popular ? 5 : 0;
-    confidence = Math.min(99, base + bonus + popularity);
+    const stateBoost = scheme.state === p.state ? 4 : 0;
+    confidence = Math.min(99, base + bonus + popularity + stateBoost);
   } else {
     // partial — how many of the checked criteria still align
     confidence = hardTotal > 0 ? Math.round((hardHits / hardTotal) * 55) : 30;
@@ -119,11 +156,20 @@ export function evaluateScheme(scheme: Scheme, p: UserProfile): SchemeMatch {
   return { scheme, eligible, reasons, confidence };
 }
 
+/**
+ * Ranks schemes for a profile.
+ * Rules: schemes from other states are dropped entirely; the user's own state
+ * schemes always rank above Central schemes.
+ */
 export function rankMatches(schemes: Scheme[], p: UserProfile): SchemeMatch[] {
   return schemes
+    .filter((s) => belongsToUser(s, p))
     .map((s) => evaluateScheme(s, p))
     .sort((a, b) => {
       if (a.eligible !== b.eligible) return a.eligible ? -1 : 1;
+      const aState = a.scheme.state ? 1 : 0;
+      const bState = b.scheme.state ? 1 : 0;
+      if (aState !== bState) return bState - aState; // own-state schemes first
       return b.confidence - a.confidence;
     });
 }
