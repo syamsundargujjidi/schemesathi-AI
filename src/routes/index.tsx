@@ -49,6 +49,16 @@ const OCCUPATION_PERSONA: Record<string, string> = {
 
 export const Route = createFileRoute("/")({
   loader: ({ context }) => context.queryClient.ensureQueryData(schemesQueryOptions),
+  head: () => ({
+    meta: [
+      { title: "Scheme Sathi AI — Find Government Schemes You Deserve" },
+      { name: "description", content: "Check your eligibility for Central & State government welfare schemes in India in minutes. Free, multilingual, AI-guided." },
+      { property: "og:title", content: "Scheme Sathi AI — Find Government Schemes You Deserve" },
+      { property: "og:description", content: "Check your eligibility for Central & State government welfare schemes in India in minutes. Free, multilingual, AI-guided." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
+    ],
+  }),
   component: Home,
 });
 
