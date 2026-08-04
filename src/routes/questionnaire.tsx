@@ -168,8 +168,8 @@ function Questionnaire() {
 
         {step === 2 && (
           <div>
-            <h1 className="font-display text-2xl font-bold">Financial details</h1>
-            <p className="mt-1 text-sm text-muted-foreground">Used only for income-based eligibility.</p>
+            <h1 className="font-display text-2xl font-bold">Financial & background details</h1>
+            <p className="mt-1 text-sm text-muted-foreground">Used only for income, education and category based eligibility.</p>
             <div className="mt-6 space-y-6">
               <Field label="Annual household income (₹)">
                 <input
@@ -177,6 +177,18 @@ function Questionnaire() {
                   onChange={(e) => setAnnualIncome(e.target.value)}
                   className="input" placeholder="e.g. 180000"
                 />
+              </Field>
+              <Field label="Highest education level">
+                <select value={education} onChange={(e) => setEducation(e.target.value)} className="input">
+                  <option value="">Select education…</option>
+                  {EDUCATION_LEVELS.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
+                </select>
+              </Field>
+              <Field label="Caste category">
+                <select value={caste} onChange={(e) => setCaste(e.target.value)} className="input">
+                  <option value="">Select category…</option>
+                  {CASTE_CATEGORIES.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
+                </select>
               </Field>
             </div>
           </div>
