@@ -44,21 +44,27 @@ export type Database = {
       schemes: {
         Row: {
           apply_url: string
+          area_type: string
           benefits: string
           bpl_only: boolean
+          caste_categories: string[]
           category: string
           created_at: string
+          department: string | null
           disability_required: boolean
           documents: string[]
+          education_levels: string[]
           gender: string
           id: string
           is_popular: boolean
+          last_updated: string
           max_age: number | null
           max_annual_income: number | null
           min_age: number | null
           ministry: string | null
           name: string
           occupations: string[]
+          official_website: string | null
           short_description: string
           slug: string
           state: string | null
@@ -66,21 +72,27 @@ export type Database = {
         }
         Insert: {
           apply_url: string
+          area_type?: string
           benefits: string
           bpl_only?: boolean
+          caste_categories?: string[]
           category: string
           created_at?: string
+          department?: string | null
           disability_required?: boolean
           documents?: string[]
+          education_levels?: string[]
           gender?: string
           id?: string
           is_popular?: boolean
+          last_updated?: string
           max_age?: number | null
           max_annual_income?: number | null
           min_age?: number | null
           ministry?: string | null
           name: string
           occupations?: string[]
+          official_website?: string | null
           short_description: string
           slug: string
           state?: string | null
@@ -88,21 +100,27 @@ export type Database = {
         }
         Update: {
           apply_url?: string
+          area_type?: string
           benefits?: string
           bpl_only?: boolean
+          caste_categories?: string[]
           category?: string
           created_at?: string
+          department?: string | null
           disability_required?: boolean
           documents?: string[]
+          education_levels?: string[]
           gender?: string
           id?: string
           is_popular?: boolean
+          last_updated?: string
           max_age?: number | null
           max_annual_income?: number | null
           min_age?: number | null
           ministry?: string | null
           name?: string
           occupations?: string[]
+          official_website?: string | null
           short_description?: string
           slug?: string
           state?: string | null
