@@ -1,7 +1,7 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { ArrowLeft, ArrowRight, ClipboardCheck } from "lucide-react";
-import { INDIAN_STATES, OCCUPATIONS, type UserProfile } from "@/lib/schemes";
+import { INDIAN_STATES, OCCUPATIONS, EDUCATION_LEVELS, CASTE_CATEGORIES, type UserProfile } from "@/lib/schemes";
 import { getFirebaseAuth } from "@/integrations/firebase/client";
 import { updateUserProfile, upsertOccupation } from "@/integrations/firebase/user-store";
 import { AuthGate } from "@/components/site/AuthGate";
@@ -45,6 +45,8 @@ function Questionnaire() {
   const [state, setState] = useState("");
   const [areaType, setAreaType] = useState<UserProfile["areaType"] | "">("");
   const [annualIncome, setAnnualIncome] = useState("");
+  const [education, setEducation] = useState("");
+  const [caste, setCaste] = useState("");
   const [occupation, setOccupation] = useState("");
   const [parentOccupation, setParentOccupation] = useState<UserProfile["parentOccupation"] | "">("");
 
@@ -53,7 +55,7 @@ function Questionnaire() {
   const canContinue =
     (step === 0 && age && Number(age) > 0 && gender && hasDisability !== null) ||
     (step === 1 && state && areaType) ||
-    (step === 2 && annualIncome !== "") ||
+    (step === 2 && annualIncome !== "" && education && caste) ||
     (step === 3 && occupation && (!isStudentOrChild || parentOccupation));
 
   function next() {
