@@ -1,7 +1,7 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { ArrowLeft, ArrowRight, ClipboardCheck } from "lucide-react";
-import { INDIAN_STATES, OCCUPATIONS, type UserProfile } from "@/lib/schemes";
+import { INDIAN_STATES, OCCUPATIONS, EDUCATION_LEVELS, CASTE_CATEGORIES, type UserProfile } from "@/lib/schemes";
 import { getFirebaseAuth } from "@/integrations/firebase/client";
 import { updateUserProfile, upsertOccupation } from "@/integrations/firebase/user-store";
 import { AuthGate } from "@/components/site/AuthGate";
@@ -45,6 +45,8 @@ function Questionnaire() {
   const [state, setState] = useState("");
   const [areaType, setAreaType] = useState<UserProfile["areaType"] | "">("");
   const [annualIncome, setAnnualIncome] = useState("");
+  const [education, setEducation] = useState("");
+  const [caste, setCaste] = useState("");
   const [occupation, setOccupation] = useState("");
   const [parentOccupation, setParentOccupation] = useState<UserProfile["parentOccupation"] | "">("");
 
@@ -53,7 +55,7 @@ function Questionnaire() {
   const canContinue =
     (step === 0 && age && Number(age) > 0 && gender && hasDisability !== null) ||
     (step === 1 && state && areaType) ||
-    (step === 2 && annualIncome !== "") ||
+    (step === 2 && annualIncome !== "" && education && caste) ||
     (step === 3 && occupation && (!isStudentOrChild || parentOccupation));
 
   function next() {
@@ -72,6 +74,8 @@ function Questionnaire() {
       areaType: areaType as UserProfile["areaType"],
       annualIncome: Number(annualIncome),
       occupation,
+      education: education || undefined,
+      caste: caste || undefined,
       parentOccupation: (parentOccupation || undefined) as UserProfile["parentOccupation"],
     };
     try {
@@ -168,8 +172,8 @@ function Questionnaire() {
 
         {step === 2 && (
           <div>
-            <h1 className="font-display text-2xl font-bold">Financial details</h1>
-            <p className="mt-1 text-sm text-muted-foreground">Used only for income-based eligibility.</p>
+            <h1 className="font-display text-2xl font-bold">Financial & background details</h1>
+            <p className="mt-1 text-sm text-muted-foreground">Used only for income, education and category based eligibility.</p>
             <div className="mt-6 space-y-6">
               <Field label="Annual household income (₹)">
                 <input
@@ -177,6 +181,18 @@ function Questionnaire() {
                   onChange={(e) => setAnnualIncome(e.target.value)}
                   className="input" placeholder="e.g. 180000"
                 />
+              </Field>
+              <Field label="Highest education level">
+                <select value={education} onChange={(e) => setEducation(e.target.value)} className="input">
+                  <option value="">Select education…</option>
+                  {EDUCATION_LEVELS.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
+                </select>
+              </Field>
+              <Field label="Caste category">
+                <select value={caste} onChange={(e) => setCaste(e.target.value)} className="input">
+                  <option value="">Select category…</option>
+                  {CASTE_CATEGORIES.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
+                </select>
               </Field>
             </div>
           </div>

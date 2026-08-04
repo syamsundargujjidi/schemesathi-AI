@@ -11,9 +11,30 @@ export type UserProfile = {
   areaType: "urban" | "rural";
   annualIncome: number;
   occupation: string;
+  education?: string;
+  caste?: string;
   parentOccupation?: "govt" | "pvt" | "self-employed" | "farmer" | "labour" | "unemployed" | "na";
   hasDisability: boolean;
 };
+
+export const CASTE_CATEGORIES = [
+  { value: "general", label: "General" },
+  { value: "obc", label: "OBC" },
+  { value: "sc", label: "SC" },
+  { value: "st", label: "ST" },
+  { value: "ews", label: "EWS" },
+  { value: "minority", label: "Minority" },
+];
+
+export const EDUCATION_LEVELS = [
+  { value: "none", label: "No formal education" },
+  { value: "primary", label: "Primary" },
+  { value: "secondary", label: "Secondary (10th)" },
+  { value: "higher-secondary", label: "Higher Secondary (12th)" },
+  { value: "diploma", label: "Diploma / ITI" },
+  { value: "graduate", label: "Graduate" },
+  { value: "postgraduate", label: "Post Graduate or above" },
+];
 
 export const schemesQueryOptions = queryOptions({
   queryKey: ["schemes"],

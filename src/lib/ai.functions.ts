@@ -119,3 +119,48 @@ Rules:
     });
     return { reply: content || "Sorry, I couldn't generate a reply. Please try again." };
   });
+
+export const explainScheme = createServerFn({ method: "POST" })
+  .inputValidator((d) =>
+    z
+      .object({
+        schemeName: z.string().min(1).max(200),
+        state: z.string().nullable().optional(),
+        benefits: z.string().max(1000).default(""),
+        documents: z.array(z.string()).max(30).default([]),
+        applyUrl: z.string().max(500).default(""),
+        eligible: z.boolean().default(true),
+        profile: z.record(z.string(), z.any()).default({}),
+        lang: z.string().default("en"),
+      })
+      .parse(d),
+  )
+  .handler(async ({ data }) => {
+    const langName = LANG_NAMES[data.lang] ?? "English";
+    const system = `You explain Indian government welfare schemes clearly to citizens. Answer ONLY in ${langName}. Use short markdown sections with these headings, in this order:
+1. Why you are eligible (or Why you may not qualify)
+2. Benefits
+3. Required documents
+4. How to apply (numbered step-by-step)
+5. Official link
+6. Alternative schemes (2-3 similar schemes to consider)
+Be factual and concise. Never invent URLs — use only the link given, otherwise say to search on myscheme.gov.in.`;
+
+    const user = `Scheme: ${data.schemeName}
+Level: ${data.state ? `${data.state} State Government` : "Central Government"}
+Benefits: ${data.benefits}
+Documents: ${data.documents.join(", ")}
+Official link: ${data.applyUrl || "unknown"}
+User is currently ${data.eligible ? "ELIGIBLE" : "NOT fully eligible"}.
+User profile: ${JSON.stringify(data.profile)}`;
+
+    const content = await callGateway({
+      model: MODEL,
+      messages: [
+        { role: "system", content: system },
+        { role: "user", content: user },
+      ],
+      temperature: 0.4,
+    });
+    return { explanation: content || "Could not generate an explanation. Please try again." };
+  });
