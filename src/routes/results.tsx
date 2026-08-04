@@ -208,8 +208,20 @@ function SchemeGroups({ matches }: { matches: SchemeMatch[] }) {
   const { t } = useTranslation();
   const central = matches.filter((m) => !m.scheme.state);
   const state = matches.filter((m) => m.scheme.state);
+  const stateName = state[0]?.scheme.state;
   return (
     <div className="mt-8 space-y-10">
+      {state.length > 0 && (
+        <div>
+          <h2 className="font-display text-xl font-bold">
+            {stateName ? `${stateName} Government Schemes` : t("results.state")}{" "}
+            <span className="text-sm font-normal text-muted-foreground">({state.length})</span>
+          </h2>
+          <div className="mt-4 grid gap-5 md:grid-cols-2">
+            {state.map((m) => <SchemeCard key={m.scheme.id} match={m} />)}
+          </div>
+        </div>
+      )}
       {central.length > 0 && (
         <div>
           <h2 className="font-display text-xl font-bold">
@@ -217,16 +229,6 @@ function SchemeGroups({ matches }: { matches: SchemeMatch[] }) {
           </h2>
           <div className="mt-4 grid gap-5 md:grid-cols-2">
             {central.map((m) => <SchemeCard key={m.scheme.id} match={m} />)}
-          </div>
-        </div>
-      )}
-      {state.length > 0 && (
-        <div>
-          <h2 className="font-display text-xl font-bold">
-            {t("results.state")} <span className="text-sm font-normal text-muted-foreground">({state.length})</span>
-          </h2>
-          <div className="mt-4 grid gap-5 md:grid-cols-2">
-            {state.map((m) => <SchemeCard key={m.scheme.id} match={m} />)}
           </div>
         </div>
       )}
