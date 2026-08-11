@@ -443,15 +443,21 @@ function SchemeCard({ match }: { match: SchemeMatch }) {
       )}
 
       <div className="mt-5 flex flex-col gap-2 sm:flex-row">
-        <a
-          href={apply}
-          target="_blank"
-          rel="noreferrer"
-          onClick={onApplyClick}
-          className="inline-flex flex-1 items-center justify-center gap-2 rounded-full bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground transition hover:brightness-110"
-        >
-          {t("results.apply")} <ArrowRight className="h-4 w-4" />
-        </a>
+        {officialUrl ? (
+          <a
+            href={officialUrl}
+            target="_blank"
+            rel="noreferrer"
+            onClick={onApplyClick}
+            className="inline-flex flex-1 items-center justify-center gap-2 rounded-full bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground transition hover:brightness-110"
+          >
+            {t("results.apply")} <ExternalLink className="h-4 w-4" />
+          </a>
+        ) : (
+          <span className="inline-flex flex-1 items-center justify-center gap-1 rounded-full border border-dashed border-input px-3 py-2.5 text-xs text-muted-foreground">
+            Official application link unavailable
+          </span>
+        )}
         <button
           onClick={onSaveOne}
           disabled={savedOne}
@@ -459,22 +465,17 @@ function SchemeCard({ match }: { match: SchemeMatch }) {
         >
           {savedOne ? <><Check className="h-3.5 w-3.5" /> Saved</> : <><Bookmark className="h-3.5 w-3.5" /> Save</>}
         </button>
-        {isValidUrl ? (
-          <a
-            href={scheme.apply_url!}
-            target="_blank"
-            rel="noreferrer"
-            onClick={onApplyClick}
-            className="inline-flex items-center justify-center gap-2 rounded-full border border-input px-4 py-2.5 text-xs font-semibold hover:bg-secondary"
-          >
-            Official site <ExternalLink className="h-3.5 w-3.5" />
-          </a>
-        ) : (
-          <span className="inline-flex items-center justify-center gap-1 rounded-full border border-dashed border-input px-3 py-2 text-[11px] text-muted-foreground">
-            {t("results.portalUnavailable")}
-          </span>
-        )}
+        <a
+          href={apply}
+          target="_blank"
+          rel="noreferrer"
+          onClick={onApplyClick}
+          className="inline-flex items-center justify-center gap-2 rounded-full border border-input px-4 py-2.5 text-xs font-semibold hover:bg-secondary"
+        >
+          myScheme <ArrowRight className="h-3.5 w-3.5" />
+        </a>
       </div>
+
 
       <button
         onClick={onExplain}
