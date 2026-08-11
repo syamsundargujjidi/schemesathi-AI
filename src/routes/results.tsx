@@ -10,7 +10,10 @@ import {
   schemesQueryOptions,
   type UserProfile,
 } from "@/lib/schemes";
-import { rankMatches, myschemeUrl, type SchemeMatch } from "@/lib/matching";
+import {
+  evaluateAll, sortMatches, isCentral, myschemeUrl,
+  type SchemeMatch, type SortKey,
+} from "@/lib/matching";
 import { explainScheme } from "@/lib/ai.functions";
 import {
   saveSchemesResult, saveScheme, syncSchemeToFirestore,
@@ -43,6 +46,7 @@ function Results() {
   const [hydrated, setHydrated] = useState(false);
   const [category, setCategory] = useState<string>("all");
   const [scope, setScope] = useState<"all" | "central" | "state">("all");
+  const [sort, setSort] = useState<SortKey>("match");
 
   const { user } = useAuth();
 
@@ -63,24 +67,26 @@ function Results() {
       .catch((e) => console.error("[firestore] scheme sync failed", e));
   }, [schemes]);
 
-  const ranked = useMemo(
-    () => (profile ? rankMatches(schemes, profile) : []),
+  const result = useMemo(
+    () =>
+      profile
+        ? evaluateAll(schemes, profile)
+        : { all: [], eligible: [], verify: [], ineligible: [], counts: { total: 0, central: 0, state: 0, verify: 0, ineligible: 0 } },
     [schemes, profile],
   );
 
-  const eligible = ranked.filter((m) => m.eligible);
-  const related = ranked.filter((m) => !m.eligible && m.confidence >= 30).slice(0, 6);
+  const eligible = result.eligible;
 
   // Log eligibility check once per profile+session
   useEffect(() => {
-    if (!user || !profile || !ranked.length) return;
+    if (!user || !profile || !result.all.length) return;
     const key = `scheme-sathi:eligibility-logged:${user.uid}:${profile.age}:${profile.state}:${profile.occupation}`;
     try {
       if (sessionStorage.getItem(key)) return;
       sessionStorage.setItem(key, "1");
     } catch {}
     logEligibilityCheck(user.uid, profile, eligible.map((m) => m.scheme.id));
-  }, [user, profile, ranked, eligible]);
+  }, [user, profile, result, eligible]);
 
   const categories = useMemo(() => {
     const set = new Set<string>();
@@ -88,12 +94,20 @@ function Results() {
     return Array.from(set).sort();
   }, [eligible]);
 
-  const filtered = eligible.filter((m) => {
-    if (category !== "all" && m.scheme.category !== category) return false;
-    if (scope === "central" && m.scheme.state) return false;
-    if (scope === "state" && !m.scheme.state) return false;
-    return true;
-  });
+  const filtered = useMemo(
+    () =>
+      sortMatches(
+        eligible.filter((m) => {
+          if (category !== "all" && m.scheme.category !== category) return false;
+          if (scope === "central" && !isCentral(m.scheme)) return false;
+          if (scope === "state" && isCentral(m.scheme)) return false;
+          return true;
+        }),
+        sort,
+      ),
+    [eligible, category, scope, sort],
+  );
+
 
   if (!hydrated) return <div className="mx-auto max-w-4xl px-4 py-16" />;
 
@@ -117,9 +131,14 @@ function Results() {
         <div>
           <p className="text-sm font-semibold uppercase tracking-widest text-primary">Your Results</p>
           <h1 className="mt-2 font-display text-3xl font-bold sm:text-4xl">
-            {eligible.length} {eligible.length === 1 ? t("results.scheme") : t("results.schemes")} {t("results.title")}
+            🎯 {result.counts.total} {result.counts.total === 1 ? t("results.scheme") : t("results.schemes")} {t("results.title")}
           </h1>
-          <p className="mt-2 max-w-2xl text-muted-foreground">{t("results.subtitle")}</p>
+          <p className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-sm text-muted-foreground">
+            <span>Central Government — <strong className="text-foreground">{result.counts.central}</strong></span>
+            <span>{profile.state} Government — <strong className="text-foreground">{result.counts.state}</strong></span>
+            {result.counts.verify > 0 && <span>Needs verification — <strong className="text-foreground">{result.counts.verify}</strong></span>}
+            {result.counts.ineligible > 0 && <span>Not eligible — <strong className="text-foreground">{result.counts.ineligible}</strong></span>}
+          </p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
           <ReadAloudButton matches={filtered} />
@@ -164,8 +183,21 @@ function Results() {
               </button>
             ))}
           </div>
+          <label className="ml-auto inline-flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
+            Sort
+            <select
+              value={sort}
+              onChange={(e) => setSort(e.target.value as SortKey)}
+              className="rounded-full border border-input bg-background px-2 py-1 text-xs font-medium text-foreground"
+            >
+              <option value="match">Exact eligibility match</option>
+              <option value="relevance">Scheme relevance</option>
+              <option value="popular">Popular schemes</option>
+              <option value="recent">Recently verified</option>
+            </select>
+          </label>
           {categories.length > 0 && (
-            <div className="ml-auto flex flex-wrap gap-1.5">
+            <div className="flex w-full flex-wrap gap-1.5">
               <button
                 onClick={() => setCategory("all")}
                 className={`rounded-full px-3 py-1 text-xs font-medium ${
@@ -192,31 +224,81 @@ function Results() {
 
       {eligible.length === 0 ? (
         <div className="card-elevated mt-10 p-8">
-          <p className="text-lg font-semibold">{t("results.empty")}</p>
-          {related.length > 0 && (
-            <div className="mt-6 grid gap-5 md:grid-cols-2">
-              {related.map((m) => <SchemeCard key={m.scheme.id} match={m} />)}
-            </div>
-          )}
+          <p className="text-lg font-semibold">
+            No currently eligible schemes found. You can update your profile details to check again.
+          </p>
         </div>
       ) : (
-        <SchemeGroups matches={filtered} />
+        <SchemeGroups matches={filtered} stateName={profile.state} />
       )}
+
+      <VerificationList matches={result.verify} />
+      <IneligibleList matches={result.ineligible} />
     </section>
   );
 }
 
-function SchemeGroups({ matches }: { matches: SchemeMatch[] }) {
+function VerificationList({ matches }: { matches: SchemeMatch[] }) {
+  if (matches.length === 0) return null;
+  return (
+    <div className="mt-12">
+      <h2 className="font-display text-xl font-bold">
+        ⚠️ {matches.length} {matches.length === 1 ? "scheme needs" : "schemes need"} verification
+      </h2>
+      <div className="mt-4 grid gap-3 md:grid-cols-2">
+        {matches.map((m) => (
+          <div key={m.scheme.id} className="rounded-2xl border border-border bg-card p-4">
+            <p className="font-semibold">{m.scheme.name}</p>
+            <p className="text-xs text-muted-foreground">
+              {isCentral(m.scheme) ? "Central" : `State · ${m.scheme.state}`} · {m.scheme.category}
+            </p>
+            <ul className="mt-2 space-y-0.5 text-xs text-muted-foreground">
+              {m.missing.map((x) => <li key={x}>• {x}</li>)}
+            </ul>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function IneligibleList({ matches }: { matches: SchemeMatch[] }) {
+  const [open, setOpen] = useState(false);
+  if (matches.length === 0) return null;
+  return (
+    <div className="mt-10">
+      <button
+        onClick={() => setOpen((v) => !v)}
+        className="inline-flex items-center gap-2 rounded-full border border-input px-4 py-2 text-sm font-semibold hover:bg-secondary"
+        aria-expanded={open}
+      >
+        ❌ {matches.length} not eligible
+        <ChevronDown className={`h-4 w-4 transition-transform ${open ? "rotate-180" : ""}`} />
+      </button>
+      {open && (
+        <ul className="mt-4 space-y-2">
+          {matches.map((m) => (
+            <li key={m.scheme.id} className="rounded-xl border border-border bg-card p-3 text-sm">
+              <span className="font-medium">{m.scheme.name}</span>
+              <span className="ml-2 text-xs text-muted-foreground">{m.failures.join(" · ")}</span>
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  );
+}
+
+function SchemeGroups({ matches, stateName }: { matches: SchemeMatch[]; stateName: string }) {
   const { t } = useTranslation();
-  const central = matches.filter((m) => !m.scheme.state);
-  const state = matches.filter((m) => m.scheme.state);
-  const stateName = state[0]?.scheme.state;
+  const central = matches.filter((m) => isCentral(m.scheme));
+  const state = matches.filter((m) => !isCentral(m.scheme));
   return (
     <div className="mt-8 space-y-10">
       {state.length > 0 && (
         <div>
           <h2 className="font-display text-xl font-bold">
-            {stateName ? `${stateName} Government Schemes` : t("results.state")}{" "}
+            {stateName} Government Schemes{" "}
             <span className="text-sm font-normal text-muted-foreground">({state.length})</span>
           </h2>
           <div className="mt-4 grid gap-5 md:grid-cols-2">
@@ -238,17 +320,19 @@ function SchemeGroups({ matches }: { matches: SchemeMatch[] }) {
   );
 }
 
+
 function SchemeCard({ match }: { match: SchemeMatch }) {
   const { t } = useTranslation();
   const { user } = useAuth();
-  const { scheme, eligible, reasons, confidence } = match;
+  const { scheme, eligible, confidence } = match;
   const [showDocs, setShowDocs] = useState(false);
   const [savedOne, setSavedOne] = useState(false);
   const [explaining, setExplaining] = useState(false);
   const [explanation, setExplanation] = useState<string | null>(null);
   const { i18n } = useTranslation();
   const apply = myschemeUrl(scheme.name);
-  const isValidUrl = scheme.apply_url && /^https?:\/\/.+\.(gov|nic)\.in/i.test(scheme.apply_url);
+  const stored = ((scheme as any).official_website || scheme.apply_url || "") as string;
+  const officialUrl = /^https?:\/\/[^\s]+\.[a-z]{2,}/i.test(stored) ? stored : null;
 
   function onApplyClick() {
     if (user) trackRecentScheme(user.uid, scheme.id, scheme.name);
@@ -310,20 +394,31 @@ function SchemeCard({ match }: { match: SchemeMatch }) {
         <p className="mt-0.5 text-foreground">{scheme.benefits}</p>
       </div>
 
-      {reasons.length > 0 && (
+      {match.checks.some((c) => c.status === "pass") && (
         <div className="mt-3 rounded-xl border border-primary/20 bg-primary/5 p-3">
           <p className="inline-flex items-center gap-1 text-xs font-semibold uppercase tracking-wider text-primary">
             <Sparkles className="h-3.5 w-3.5" /> {t("results.whyMatches")}
           </p>
           <ul className="mt-1.5 space-y-0.5 text-xs text-foreground">
-            {reasons.map((r) => (
-              <li key={r} className="flex items-center gap-1.5">
-                <Check className="h-3 w-3 text-primary" /> {t(`reasons.${r}`)}
+            {match.checks.filter((c) => c.status === "pass").map((c) => (
+              <li key={c.key} className="flex items-start gap-1.5">
+                <Check className="mt-0.5 h-3 w-3 shrink-0 text-primary" />
+                <span><strong>{c.label}:</strong> {c.detail}</span>
               </li>
             ))}
           </ul>
         </div>
       )}
+
+      {match.missing.length > 0 && (
+        <div className="mt-3 rounded-xl border border-amber-500/30 bg-amber-500/10 p-3 text-xs">
+          <p className="font-semibold uppercase tracking-wider">Needs verification</p>
+          <ul className="mt-1 space-y-0.5">
+            {match.missing.map((x) => <li key={x}>• {x}</li>)}
+          </ul>
+        </div>
+      )}
+
 
       {scheme.documents.length > 0 && (
         <div className="mt-4">
@@ -349,15 +444,21 @@ function SchemeCard({ match }: { match: SchemeMatch }) {
       )}
 
       <div className="mt-5 flex flex-col gap-2 sm:flex-row">
-        <a
-          href={apply}
-          target="_blank"
-          rel="noreferrer"
-          onClick={onApplyClick}
-          className="inline-flex flex-1 items-center justify-center gap-2 rounded-full bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground transition hover:brightness-110"
-        >
-          {t("results.apply")} <ArrowRight className="h-4 w-4" />
-        </a>
+        {officialUrl ? (
+          <a
+            href={officialUrl}
+            target="_blank"
+            rel="noreferrer"
+            onClick={onApplyClick}
+            className="inline-flex flex-1 items-center justify-center gap-2 rounded-full bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground transition hover:brightness-110"
+          >
+            {t("results.apply")} <ExternalLink className="h-4 w-4" />
+          </a>
+        ) : (
+          <span className="inline-flex flex-1 items-center justify-center gap-1 rounded-full border border-dashed border-input px-3 py-2.5 text-xs text-muted-foreground">
+            Official application link unavailable
+          </span>
+        )}
         <button
           onClick={onSaveOne}
           disabled={savedOne}
@@ -365,22 +466,17 @@ function SchemeCard({ match }: { match: SchemeMatch }) {
         >
           {savedOne ? <><Check className="h-3.5 w-3.5" /> Saved</> : <><Bookmark className="h-3.5 w-3.5" /> Save</>}
         </button>
-        {isValidUrl ? (
-          <a
-            href={scheme.apply_url!}
-            target="_blank"
-            rel="noreferrer"
-            onClick={onApplyClick}
-            className="inline-flex items-center justify-center gap-2 rounded-full border border-input px-4 py-2.5 text-xs font-semibold hover:bg-secondary"
-          >
-            Official site <ExternalLink className="h-3.5 w-3.5" />
-          </a>
-        ) : (
-          <span className="inline-flex items-center justify-center gap-1 rounded-full border border-dashed border-input px-3 py-2 text-[11px] text-muted-foreground">
-            {t("results.portalUnavailable")}
-          </span>
-        )}
+        <a
+          href={apply}
+          target="_blank"
+          rel="noreferrer"
+          onClick={onApplyClick}
+          className="inline-flex items-center justify-center gap-2 rounded-full border border-input px-4 py-2.5 text-xs font-semibold hover:bg-secondary"
+        >
+          myScheme <ArrowRight className="h-3.5 w-3.5" />
+        </a>
       </div>
+
 
       <button
         onClick={onExplain}
