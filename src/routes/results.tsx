@@ -131,9 +131,14 @@ function Results() {
         <div>
           <p className="text-sm font-semibold uppercase tracking-widest text-primary">Your Results</p>
           <h1 className="mt-2 font-display text-3xl font-bold sm:text-4xl">
-            {eligible.length} {eligible.length === 1 ? t("results.scheme") : t("results.schemes")} {t("results.title")}
+            🎯 {result.counts.total} {result.counts.total === 1 ? t("results.scheme") : t("results.schemes")} {t("results.title")}
           </h1>
-          <p className="mt-2 max-w-2xl text-muted-foreground">{t("results.subtitle")}</p>
+          <p className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-sm text-muted-foreground">
+            <span>Central Government — <strong className="text-foreground">{result.counts.central}</strong></span>
+            <span>{profile.state} Government — <strong className="text-foreground">{result.counts.state}</strong></span>
+            {result.counts.verify > 0 && <span>Needs verification — <strong className="text-foreground">{result.counts.verify}</strong></span>}
+            {result.counts.ineligible > 0 && <span>Not eligible — <strong className="text-foreground">{result.counts.ineligible}</strong></span>}
+          </p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
           <ReadAloudButton matches={filtered} />
@@ -178,8 +183,21 @@ function Results() {
               </button>
             ))}
           </div>
+          <label className="ml-auto inline-flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
+            Sort
+            <select
+              value={sort}
+              onChange={(e) => setSort(e.target.value as SortKey)}
+              className="rounded-full border border-input bg-background px-2 py-1 text-xs font-medium text-foreground"
+            >
+              <option value="match">Exact eligibility match</option>
+              <option value="relevance">Scheme relevance</option>
+              <option value="popular">Popular schemes</option>
+              <option value="recent">Recently verified</option>
+            </select>
+          </label>
           {categories.length > 0 && (
-            <div className="ml-auto flex flex-wrap gap-1.5">
+            <div className="flex w-full flex-wrap gap-1.5">
               <button
                 onClick={() => setCategory("all")}
                 className={`rounded-full px-3 py-1 text-xs font-medium ${
@@ -206,31 +224,81 @@ function Results() {
 
       {eligible.length === 0 ? (
         <div className="card-elevated mt-10 p-8">
-          <p className="text-lg font-semibold">{t("results.empty")}</p>
-          {related.length > 0 && (
-            <div className="mt-6 grid gap-5 md:grid-cols-2">
-              {related.map((m) => <SchemeCard key={m.scheme.id} match={m} />)}
-            </div>
-          )}
+          <p className="text-lg font-semibold">
+            No currently eligible schemes found. You can update your profile details to check again.
+          </p>
         </div>
       ) : (
-        <SchemeGroups matches={filtered} />
+        <SchemeGroups matches={filtered} stateName={profile.state} />
       )}
+
+      <VerificationList matches={result.verify} />
+      <IneligibleList matches={result.ineligible} />
     </section>
   );
 }
 
-function SchemeGroups({ matches }: { matches: SchemeMatch[] }) {
+function VerificationList({ matches }: { matches: SchemeMatch[] }) {
+  if (matches.length === 0) return null;
+  return (
+    <div className="mt-12">
+      <h2 className="font-display text-xl font-bold">
+        ⚠️ {matches.length} {matches.length === 1 ? "scheme needs" : "schemes need"} verification
+      </h2>
+      <div className="mt-4 grid gap-3 md:grid-cols-2">
+        {matches.map((m) => (
+          <div key={m.scheme.id} className="rounded-2xl border border-border bg-card p-4">
+            <p className="font-semibold">{m.scheme.name}</p>
+            <p className="text-xs text-muted-foreground">
+              {isCentral(m.scheme) ? "Central" : `State · ${m.scheme.state}`} · {m.scheme.category}
+            </p>
+            <ul className="mt-2 space-y-0.5 text-xs text-muted-foreground">
+              {m.missing.map((x) => <li key={x}>• {x}</li>)}
+            </ul>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function IneligibleList({ matches }: { matches: SchemeMatch[] }) {
+  const [open, setOpen] = useState(false);
+  if (matches.length === 0) return null;
+  return (
+    <div className="mt-10">
+      <button
+        onClick={() => setOpen((v) => !v)}
+        className="inline-flex items-center gap-2 rounded-full border border-input px-4 py-2 text-sm font-semibold hover:bg-secondary"
+        aria-expanded={open}
+      >
+        ❌ {matches.length} not eligible
+        <ChevronDown className={`h-4 w-4 transition-transform ${open ? "rotate-180" : ""}`} />
+      </button>
+      {open && (
+        <ul className="mt-4 space-y-2">
+          {matches.map((m) => (
+            <li key={m.scheme.id} className="rounded-xl border border-border bg-card p-3 text-sm">
+              <span className="font-medium">{m.scheme.name}</span>
+              <span className="ml-2 text-xs text-muted-foreground">{m.failures.join(" · ")}</span>
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  );
+}
+
+function SchemeGroups({ matches, stateName }: { matches: SchemeMatch[]; stateName: string }) {
   const { t } = useTranslation();
-  const central = matches.filter((m) => !m.scheme.state);
-  const state = matches.filter((m) => m.scheme.state);
-  const stateName = state[0]?.scheme.state;
+  const central = matches.filter((m) => isCentral(m.scheme));
+  const state = matches.filter((m) => !isCentral(m.scheme));
   return (
     <div className="mt-8 space-y-10">
       {state.length > 0 && (
         <div>
           <h2 className="font-display text-xl font-bold">
-            {stateName ? `${stateName} Government Schemes` : t("results.state")}{" "}
+            {stateName} Government Schemes{" "}
             <span className="text-sm font-normal text-muted-foreground">({state.length})</span>
           </h2>
           <div className="mt-4 grid gap-5 md:grid-cols-2">
@@ -251,6 +319,7 @@ function SchemeGroups({ matches }: { matches: SchemeMatch[] }) {
     </div>
   );
 }
+
 
 function SchemeCard({ match }: { match: SchemeMatch }) {
   const { t } = useTranslation();
