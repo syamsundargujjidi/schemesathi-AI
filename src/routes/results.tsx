@@ -393,20 +393,31 @@ function SchemeCard({ match }: { match: SchemeMatch }) {
         <p className="mt-0.5 text-foreground">{scheme.benefits}</p>
       </div>
 
-      {reasons.length > 0 && (
+      {match.checks.some((c) => c.status === "pass") && (
         <div className="mt-3 rounded-xl border border-primary/20 bg-primary/5 p-3">
           <p className="inline-flex items-center gap-1 text-xs font-semibold uppercase tracking-wider text-primary">
             <Sparkles className="h-3.5 w-3.5" /> {t("results.whyMatches")}
           </p>
           <ul className="mt-1.5 space-y-0.5 text-xs text-foreground">
-            {reasons.map((r) => (
-              <li key={r} className="flex items-center gap-1.5">
-                <Check className="h-3 w-3 text-primary" /> {t(`reasons.${r}`)}
+            {match.checks.filter((c) => c.status === "pass").map((c) => (
+              <li key={c.key} className="flex items-start gap-1.5">
+                <Check className="mt-0.5 h-3 w-3 shrink-0 text-primary" />
+                <span><strong>{c.label}:</strong> {c.detail}</span>
               </li>
             ))}
           </ul>
         </div>
       )}
+
+      {match.missing.length > 0 && (
+        <div className="mt-3 rounded-xl border border-amber-500/30 bg-amber-500/10 p-3 text-xs">
+          <p className="font-semibold uppercase tracking-wider">Needs verification</p>
+          <ul className="mt-1 space-y-0.5">
+            {match.missing.map((x) => <li key={x}>• {x}</li>)}
+          </ul>
+        </div>
+      )}
+
 
       {scheme.documents.length > 0 && (
         <div className="mt-4">
