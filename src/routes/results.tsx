@@ -324,14 +324,15 @@ function SchemeGroups({ matches, stateName }: { matches: SchemeMatch[]; stateNam
 function SchemeCard({ match }: { match: SchemeMatch }) {
   const { t } = useTranslation();
   const { user } = useAuth();
-  const { scheme, eligible, reasons, confidence } = match;
+  const { scheme, eligible, confidence } = match;
   const [showDocs, setShowDocs] = useState(false);
   const [savedOne, setSavedOne] = useState(false);
   const [explaining, setExplaining] = useState(false);
   const [explanation, setExplanation] = useState<string | null>(null);
   const { i18n } = useTranslation();
   const apply = myschemeUrl(scheme.name);
-  const isValidUrl = scheme.apply_url && /^https?:\/\/.+\.(gov|nic)\.in/i.test(scheme.apply_url);
+  const stored = ((scheme as any).official_website || scheme.apply_url || "") as string;
+  const officialUrl = /^https?:\/\/[^\s]+\.[a-z]{2,}/i.test(stored) ? stored : null;
 
   function onApplyClick() {
     if (user) trackRecentScheme(user.uid, scheme.id, scheme.name);
