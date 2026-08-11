@@ -46,6 +46,7 @@ function Results() {
   const [hydrated, setHydrated] = useState(false);
   const [category, setCategory] = useState<string>("all");
   const [scope, setScope] = useState<"all" | "central" | "state">("all");
+  const [sort, setSort] = useState<SortKey>("match");
 
   const { user } = useAuth();
 
