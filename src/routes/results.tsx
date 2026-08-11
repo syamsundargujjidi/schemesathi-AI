@@ -10,7 +10,10 @@ import {
   schemesQueryOptions,
   type UserProfile,
 } from "@/lib/schemes";
-import { rankMatches, myschemeUrl, type SchemeMatch } from "@/lib/matching";
+import {
+  evaluateAll, sortMatches, isCentral, myschemeUrl,
+  type SchemeMatch, type SortKey,
+} from "@/lib/matching";
 import { explainScheme } from "@/lib/ai.functions";
 import {
   saveSchemesResult, saveScheme, syncSchemeToFirestore,
