@@ -66,24 +66,26 @@ function Results() {
       .catch((e) => console.error("[firestore] scheme sync failed", e));
   }, [schemes]);
 
-  const ranked = useMemo(
-    () => (profile ? rankMatches(schemes, profile) : []),
+  const result = useMemo(
+    () =>
+      profile
+        ? evaluateAll(schemes, profile)
+        : { all: [], eligible: [], verify: [], ineligible: [], counts: { total: 0, central: 0, state: 0, verify: 0, ineligible: 0 } },
     [schemes, profile],
   );
 
-  const eligible = ranked.filter((m) => m.eligible);
-  const related = ranked.filter((m) => !m.eligible && m.confidence >= 30).slice(0, 6);
+  const eligible = result.eligible;
 
   // Log eligibility check once per profile+session
   useEffect(() => {
-    if (!user || !profile || !ranked.length) return;
+    if (!user || !profile || !result.all.length) return;
     const key = `scheme-sathi:eligibility-logged:${user.uid}:${profile.age}:${profile.state}:${profile.occupation}`;
     try {
       if (sessionStorage.getItem(key)) return;
       sessionStorage.setItem(key, "1");
     } catch {}
     logEligibilityCheck(user.uid, profile, eligible.map((m) => m.scheme.id));
-  }, [user, profile, ranked, eligible]);
+  }, [user, profile, result, eligible]);
 
   const categories = useMemo(() => {
     const set = new Set<string>();
@@ -91,12 +93,20 @@ function Results() {
     return Array.from(set).sort();
   }, [eligible]);
 
-  const filtered = eligible.filter((m) => {
-    if (category !== "all" && m.scheme.category !== category) return false;
-    if (scope === "central" && m.scheme.state) return false;
-    if (scope === "state" && !m.scheme.state) return false;
-    return true;
-  });
+  const filtered = useMemo(
+    () =>
+      sortMatches(
+        eligible.filter((m) => {
+          if (category !== "all" && m.scheme.category !== category) return false;
+          if (scope === "central" && !isCentral(m.scheme)) return false;
+          if (scope === "state" && isCentral(m.scheme)) return false;
+          return true;
+        }),
+        sort,
+      ),
+    [eligible, category, scope, sort],
+  );
+
 
   if (!hydrated) return <div className="mx-auto max-w-4xl px-4 py-16" />;
 
