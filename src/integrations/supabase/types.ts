@@ -45,6 +45,7 @@ export type Database = {
         Row: {
           apply_url: string
           area_type: string
+          available_states: string[]
           benefits: string
           bpl_only: boolean
           caste_categories: string[]
@@ -52,27 +53,49 @@ export type Database = {
           created_at: string
           department: string | null
           disability_required: boolean
+          districts: string[]
           documents: string[]
           education_levels: string[]
+          eligibility_rules: Json | null
+          eligibility_summary: string | null
+          employment_status: string | null
+          farmer_required: boolean
           gender: string
+          government_level: string
           id: string
           is_popular: boolean
+          land_ownership_required: boolean
           last_updated: string
+          last_verified: string | null
+          marital_status: string | null
           max_age: number | null
           max_annual_income: number | null
           min_age: number | null
+          min_annual_income: number | null
           ministry: string | null
+          minority_required: boolean
           name: string
           occupations: string[]
+          official_source_url: string | null
           official_website: string | null
+          residency_required: boolean
+          residency_years: number | null
+          scheme_scope: string
+          scheme_status: string
+          senior_citizen_required: boolean
           short_description: string
           slug: string
           state: string | null
+          student_required: boolean
+          subcategories: string[]
           tags: string[]
+          verification_status: string
+          widow_required: boolean
         }
         Insert: {
           apply_url: string
           area_type?: string
+          available_states?: string[]
           benefits: string
           bpl_only?: boolean
           caste_categories?: string[]
@@ -80,27 +103,49 @@ export type Database = {
           created_at?: string
           department?: string | null
           disability_required?: boolean
+          districts?: string[]
           documents?: string[]
           education_levels?: string[]
+          eligibility_rules?: Json | null
+          eligibility_summary?: string | null
+          employment_status?: string | null
+          farmer_required?: boolean
           gender?: string
+          government_level?: string
           id?: string
           is_popular?: boolean
+          land_ownership_required?: boolean
           last_updated?: string
+          last_verified?: string | null
+          marital_status?: string | null
           max_age?: number | null
           max_annual_income?: number | null
           min_age?: number | null
+          min_annual_income?: number | null
           ministry?: string | null
+          minority_required?: boolean
           name: string
           occupations?: string[]
+          official_source_url?: string | null
           official_website?: string | null
+          residency_required?: boolean
+          residency_years?: number | null
+          scheme_scope?: string
+          scheme_status?: string
+          senior_citizen_required?: boolean
           short_description: string
           slug: string
           state?: string | null
+          student_required?: boolean
+          subcategories?: string[]
           tags?: string[]
+          verification_status?: string
+          widow_required?: boolean
         }
         Update: {
           apply_url?: string
           area_type?: string
+          available_states?: string[]
           benefits?: string
           bpl_only?: boolean
           caste_categories?: string[]
@@ -108,23 +153,44 @@ export type Database = {
           created_at?: string
           department?: string | null
           disability_required?: boolean
+          districts?: string[]
           documents?: string[]
           education_levels?: string[]
+          eligibility_rules?: Json | null
+          eligibility_summary?: string | null
+          employment_status?: string | null
+          farmer_required?: boolean
           gender?: string
+          government_level?: string
           id?: string
           is_popular?: boolean
+          land_ownership_required?: boolean
           last_updated?: string
+          last_verified?: string | null
+          marital_status?: string | null
           max_age?: number | null
           max_annual_income?: number | null
           min_age?: number | null
+          min_annual_income?: number | null
           ministry?: string | null
+          minority_required?: boolean
           name?: string
           occupations?: string[]
+          official_source_url?: string | null
           official_website?: string | null
+          residency_required?: boolean
+          residency_years?: number | null
+          scheme_scope?: string
+          scheme_status?: string
+          senior_citizen_required?: boolean
           short_description?: string
           slug?: string
           state?: string | null
+          student_required?: boolean
+          subcategories?: string[]
           tags?: string[]
+          verification_status?: string
+          widow_required?: boolean
         }
         Relationships: []
       }
