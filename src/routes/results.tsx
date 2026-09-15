@@ -238,6 +238,24 @@ function Results() {
 
       <VerificationList matches={result.verify} />
       <IneligibleList matches={result.ineligible} />
+
+      <details className="mt-10 rounded-2xl border border-border bg-card p-4 text-sm">
+        <summary className="cursor-pointer font-semibold">Search details (debug)</summary>
+        <ul className="mt-3 grid gap-1 text-muted-foreground sm:grid-cols-2">
+          <li>Schemes in database: <strong className="text-foreground">{result.debug.catalogue}</strong></li>
+          <li>Duplicates removed: <strong className="text-foreground">{result.debug.duplicatesRemoved}</strong></li>
+          <li>Candidate schemes for {profile.state}: <strong className="text-foreground">{result.debug.candidates}</strong></li>
+          <li>Not available in your State/UT: <strong className="text-foreground">{result.debug.outOfScope}</strong></li>
+          <li>Inactive schemes skipped: <strong className="text-foreground">{result.debug.inactive}</strong></li>
+          <li>Eligible: <strong className="text-foreground">{result.debug.eligible}</strong></li>
+          <li>Needs verification: <strong className="text-foreground">{result.debug.verify}</strong></li>
+          <li>Not eligible: <strong className="text-foreground">{result.debug.ineligible}</strong></li>
+        </ul>
+        <p className="mt-3 text-xs text-muted-foreground">
+          Every candidate scheme is checked condition by condition — nothing is limited or cut off.
+          Open any scheme card to see each condition result.
+        </p>
+      </details>
     </section>
   );
 }
