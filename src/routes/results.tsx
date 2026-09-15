@@ -71,7 +71,11 @@ function Results() {
     () =>
       profile
         ? evaluateAll(schemes, profile)
-        : { all: [], eligible: [], verify: [], ineligible: [], counts: { total: 0, central: 0, state: 0, verify: 0, ineligible: 0 } },
+        : {
+            all: [], eligible: [], verify: [], ineligible: [],
+            counts: { total: 0, central: 0, state: 0, verify: 0, ineligible: 0 },
+            debug: { catalogue: schemes.length, duplicatesRemoved: 0, candidates: 0, outOfScope: 0, inactive: 0, eligible: 0, verify: 0, ineligible: 0 },
+          },
     [schemes, profile],
   );
 
