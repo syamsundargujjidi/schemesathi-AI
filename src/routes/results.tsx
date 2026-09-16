@@ -8,6 +8,7 @@ import {
 } from "lucide-react";
 import {
   schemesQueryOptions,
+  officialLink,
   type UserProfile,
 } from "@/lib/schemes";
 import {
@@ -353,8 +354,8 @@ function SchemeCard({ match }: { match: SchemeMatch }) {
   const [explanation, setExplanation] = useState<string | null>(null);
   const { i18n } = useTranslation();
   const apply = myschemeUrl(scheme.name);
-  const stored = ((scheme as any).official_website || scheme.apply_url || "") as string;
-  const officialUrl = /^https?:\/\/[^\s]+\.[a-z]{2,}/i.test(stored) ? stored : null;
+  const link = officialLink(scheme as any);
+  const officialUrl = link.url;
 
   function onApplyClick() {
     if (user) trackRecentScheme(user.uid, scheme.id, scheme.name);
@@ -478,7 +479,7 @@ function SchemeCard({ match }: { match: SchemeMatch }) {
           </a>
         ) : (
           <span className="inline-flex flex-1 items-center justify-center gap-1 rounded-full border border-dashed border-input px-3 py-2.5 text-xs text-muted-foreground">
-            Official application link unavailable
+            {link.state === "invalid" ? link.note : "Official application link unavailable"}
           </span>
         )}
         <button
@@ -499,6 +500,9 @@ function SchemeCard({ match }: { match: SchemeMatch }) {
         </a>
       </div>
 
+      {link.state === "unreachable" && (
+        <p className="mt-2 text-xs text-muted-foreground">⚠️ {link.note}</p>
+      )}
 
       <button
         onClick={onExplain}

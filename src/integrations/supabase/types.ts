@@ -67,6 +67,10 @@ export type Database = {
           land_ownership_required: boolean
           last_updated: string
           last_verified: string | null
+          link_checked_at: string | null
+          link_fail_count: number
+          link_http_status: number | null
+          link_status: string
           marital_status: string | null
           max_age: number | null
           max_annual_income: number | null
@@ -117,6 +121,10 @@ export type Database = {
           land_ownership_required?: boolean
           last_updated?: string
           last_verified?: string | null
+          link_checked_at?: string | null
+          link_fail_count?: number
+          link_http_status?: number | null
+          link_status?: string
           marital_status?: string | null
           max_age?: number | null
           max_annual_income?: number | null
@@ -167,6 +175,10 @@ export type Database = {
           land_ownership_required?: boolean
           last_updated?: string
           last_verified?: string | null
+          link_checked_at?: string | null
+          link_fail_count?: number
+          link_http_status?: number | null
+          link_status?: string
           marital_status?: string | null
           max_age?: number | null
           max_annual_income?: number | null
@@ -191,6 +203,48 @@ export type Database = {
           tags?: string[]
           verification_status?: string
           widow_required?: boolean
+        }
+        Relationships: []
+      }
+      validation_jobs: {
+        Row: {
+          checked_last_run: number
+          created_at: string
+          cursor_slug: string | null
+          id: string
+          job_name: string
+          last_finished_at: string | null
+          last_run_at: string | null
+          lease_until: string | null
+          paused: boolean
+          paused_reason: string | null
+          updated_at: string
+        }
+        Insert: {
+          checked_last_run?: number
+          created_at?: string
+          cursor_slug?: string | null
+          id?: string
+          job_name: string
+          last_finished_at?: string | null
+          last_run_at?: string | null
+          lease_until?: string | null
+          paused?: boolean
+          paused_reason?: string | null
+          updated_at?: string
+        }
+        Update: {
+          checked_last_run?: number
+          created_at?: string
+          cursor_slug?: string | null
+          id?: string
+          job_name?: string
+          last_finished_at?: string | null
+          last_run_at?: string | null
+          lease_until?: string | null
+          paused?: boolean
+          paused_reason?: string | null
+          updated_at?: string
         }
         Relationships: []
       }
