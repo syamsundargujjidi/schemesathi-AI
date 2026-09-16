@@ -499,6 +499,9 @@ function SchemeCard({ match }: { match: SchemeMatch }) {
         </a>
       </div>
 
+      {link.state === "unreachable" && (
+        <p className="mt-2 text-xs text-muted-foreground">⚠️ {link.note}</p>
+      )}
 
       <button
         onClick={onExplain}
