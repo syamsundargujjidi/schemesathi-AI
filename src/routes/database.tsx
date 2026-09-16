@@ -183,7 +183,45 @@ function DatabaseDashboard() {
         actually stored and verified here.
       </p>
 
+      <div className="mt-5 flex flex-wrap items-center gap-2">
+        <button
+          type="button"
+          onClick={downloadCsv}
+          className="inline-flex items-center gap-2 rounded-full bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground transition hover:brightness-110"
+        >
+          <Download className="h-4 w-4" /> Download validation report (CSV)
+        </button>
+        <button
+          type="button"
+          onClick={runChecksNow}
+          disabled={running}
+          className="inline-flex items-center gap-2 rounded-full border border-input px-4 py-2 text-sm font-semibold hover:bg-secondary disabled:opacity-60"
+        >
+          <RefreshCw className={`h-4 w-4 ${running ? "animate-spin" : ""}`} />
+          {running ? "Checking links…" : "Run checks now"}
+        </button>
+      </div>
+      <p className="mt-2 text-xs text-muted-foreground">
+        Link and status checks run automatically every day in batches.{" "}
+        {job?.last_finished_at
+          ? `Last run ${new Date(job.last_finished_at).toLocaleString()} — ${job.checked_last_run} schemes checked.`
+          : "No automatic run has finished yet."}
+        {job?.paused ? ` Paused: ${job.paused_reason ?? "unknown reason"}.` : ""}
+      </p>
+
       <div className="mt-8 grid gap-4 sm:grid-cols-2">
+        <div className="card-elevated p-5">
+          <h2 className="inline-flex items-center gap-2 font-display text-lg font-bold">
+            <Link2 className="h-4 w-4 text-primary" /> Official link health
+          </h2>
+          <Row label="Working links" value={stats.links.ok} />
+          <Row label="Could not reach (kept visible)" value={stats.links.unreachable} />
+          <Row label="No longer valid (hidden)" value={stats.links.invalid} />
+          <Row label="Not checked yet" value={stats.links.unchecked} />
+          <Row label="No official link stored" value={stats.links.missing} />
+          <Row label="Duplicate records" value={stats.duplicates} />
+        </div>
+
         <div className="card-elevated p-5">
           <h2 className="font-display text-lg font-bold">Government level</h2>
           <Row label="Central Government" value={stats.central} />
