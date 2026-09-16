@@ -1,9 +1,51 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useSuspenseQuery } from "@tanstack/react-query";
-import { useMemo } from "react";
-import { Database as DatabaseIcon, AlertTriangle } from "lucide-react";
-import { schemesQueryOptions, INDIAN_STATES } from "@/lib/schemes";
+import { useSuspenseQuery, useQuery } from "@tanstack/react-query";
+import { useMemo, useState } from "react";
+import { Database as DatabaseIcon, AlertTriangle, Download, RefreshCw, Link2 } from "lucide-react";
+import { schemesQueryOptions, INDIAN_STATES, officialLink, type Scheme } from "@/lib/schemes";
 import { isUnionTerritory, isCentral, schemeScope } from "@/lib/matching";
+import { supabase } from "@/integrations/supabase/client";
+
+function csvCell(value: unknown): string {
+  const s = value == null ? "" : String(value);
+  return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
+}
+
+function buildReportCsv(schemes: Scheme[]): string {
+  const seen = new Map<string, number>();
+  for (const s of schemes) seen.set(s.slug, (seen.get(s.slug) ?? 0) + 1);
+
+  const header = [
+    "slug", "name", "government_level", "scheme_scope", "state", "category",
+    "scheme_status", "verification_status", "official_url", "link_status",
+    "link_http_status", "link_checked_at", "missing_eligibility_rules",
+    "missing_benefits", "missing_documents", "missing_official_url", "inactive",
+    "duplicate_slug",
+  ];
+
+  const rows = schemes.map((s) => {
+    const anyS = s as unknown as Record<string, unknown>;
+    const link = officialLink(s as never);
+    const missingRules =
+      s.min_age == null && s.max_age == null && s.max_annual_income == null &&
+      (s.occupations ?? []).length === 0 && !anyS["eligibility_rules"];
+    return [
+      s.slug, s.name, anyS["government_level"], anyS["scheme_scope"], s.state, s.category,
+      anyS["scheme_status"] ?? "Active", anyS["verification_status"],
+      anyS["official_source_url"] || s.official_website || s.apply_url || "",
+      anyS["link_status"] ?? "unchecked", anyS["link_http_status"] ?? "",
+      anyS["link_checked_at"] ?? "",
+      missingRules ? "yes" : "no",
+      s.benefits?.trim() ? "no" : "yes",
+      (s.documents ?? []).length === 0 ? "yes" : "no",
+      link.state === "missing" ? "yes" : "no",
+      ((anyS["scheme_status"] as string) ?? "Active") !== "Active" ? "yes" : "no",
+      (seen.get(s.slug) ?? 0) > 1 ? "yes" : "no",
+    ].map(csvCell).join(",");
+  });
+
+  return [header.join(","), ...rows].join("\n");
+}
 
 export const Route = createFileRoute("/database")({
   ssr: false,
