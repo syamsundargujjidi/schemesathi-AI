@@ -478,7 +478,7 @@ function SchemeCard({ match }: { match: SchemeMatch }) {
           </a>
         ) : (
           <span className="inline-flex flex-1 items-center justify-center gap-1 rounded-full border border-dashed border-input px-3 py-2.5 text-xs text-muted-foreground">
-            Official application link unavailable
+            {link.state === "invalid" ? link.note : "Official application link unavailable"}
           </span>
         )}
         <button
