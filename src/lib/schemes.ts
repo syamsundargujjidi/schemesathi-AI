@@ -96,3 +96,51 @@ export const OCCUPATIONS = [
   { value: "salaried", label: "Salaried Employee" },
   { value: "any", label: "Other / Not Listed" },
 ];
+
+// ---------------------------------------------------------------------------
+// Official apply link + link health
+// ---------------------------------------------------------------------------
+
+export type OfficialLink =
+  | { state: "ok"; url: string }
+  | { state: "unreachable"; url: string; note: string }
+  | { state: "invalid"; url: null; note: string }
+  | { state: "missing"; url: null; note: string };
+
+type LinkFields = {
+  official_source_url?: string | null;
+  official_website?: string | null;
+  apply_url?: string | null;
+  link_status?: string | null;
+  link_http_status?: number | null;
+  link_fail_count?: number | null;
+};
+
+// A link is only withheld once repeated checks agree it is truly gone
+// (404 / 410 / host no longer exists). Anything else stays clickable and is
+// flagged "could not reach" instead.
+export function officialLink(scheme: LinkFields): OfficialLink {
+  const raw =
+    scheme.official_source_url || scheme.official_website || scheme.apply_url || "";
+  const url = /^https?:\/\/[^\s]+\.[a-z]{2,}/i.test(raw) ? raw : null;
+
+  if (!url) return { state: "missing", url: null, note: "Official application link unavailable" };
+
+  const status = scheme.link_status ?? "unchecked";
+  const fails = scheme.link_fail_count ?? 0;
+
+  if (status === "invalid" && fails >= 2) {
+    return { state: "invalid", url: null, note: "Official page no longer exists" };
+  }
+  if (status === "unreachable" || (status === "invalid" && fails < 2)) {
+    return {
+      state: "unreachable",
+      url,
+      note:
+        scheme.link_http_status
+          ? `Could not reach the official site (HTTP ${scheme.link_http_status}) — try it anyway`
+          : "Could not reach the official site — try it anyway",
+    };
+  }
+  return { state: "ok", url };
+}

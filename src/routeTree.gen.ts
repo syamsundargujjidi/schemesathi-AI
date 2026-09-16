@@ -21,6 +21,7 @@ import { Route as AuthenticatedSavedRouteImport } from './routes/_authenticated/
 import { Route as AuthenticatedProfileRouteImport } from './routes/_authenticated/profile'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as AuthenticatedCompleteProfileRouteImport } from './routes/_authenticated/complete-profile'
+import { Route as ApiPublicHooksValidateLinksRouteImport } from './routes/api/public/hooks/validate-links'
 
 const SchemesRoute = SchemesRouteImport.update({
   id: '/schemes',
@@ -82,6 +83,12 @@ const AuthenticatedCompleteProfileRoute =
     path: '/complete-profile',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const ApiPublicHooksValidateLinksRoute =
+  ApiPublicHooksValidateLinksRouteImport.update({
+    id: '/api/public/hooks/validate-links',
+    path: '/api/public/hooks/validate-links',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -95,6 +102,7 @@ export interface FileRoutesByFullPath {
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/profile': typeof AuthenticatedProfileRoute
   '/saved': typeof AuthenticatedSavedRoute
+  '/api/public/hooks/validate-links': typeof ApiPublicHooksValidateLinksRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -108,6 +116,7 @@ export interface FileRoutesByTo {
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/profile': typeof AuthenticatedProfileRoute
   '/saved': typeof AuthenticatedSavedRoute
+  '/api/public/hooks/validate-links': typeof ApiPublicHooksValidateLinksRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -123,6 +132,7 @@ export interface FileRoutesById {
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/_authenticated/profile': typeof AuthenticatedProfileRoute
   '/_authenticated/saved': typeof AuthenticatedSavedRoute
+  '/api/public/hooks/validate-links': typeof ApiPublicHooksValidateLinksRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -138,6 +148,7 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/profile'
     | '/saved'
+    | '/api/public/hooks/validate-links'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -151,6 +162,7 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/profile'
     | '/saved'
+    | '/api/public/hooks/validate-links'
   id:
     | '__root__'
     | '/'
@@ -165,6 +177,7 @@ export interface FileRouteTypes {
     | '/_authenticated/dashboard'
     | '/_authenticated/profile'
     | '/_authenticated/saved'
+    | '/api/public/hooks/validate-links'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -176,6 +189,7 @@ export interface RootRouteChildren {
   QuestionnaireRoute: typeof QuestionnaireRoute
   ResultsRoute: typeof ResultsRoute
   SchemesRoute: typeof SchemesRoute
+  ApiPublicHooksValidateLinksRoute: typeof ApiPublicHooksValidateLinksRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -264,6 +278,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedCompleteProfileRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/api/public/hooks/validate-links': {
+      id: '/api/public/hooks/validate-links'
+      path: '/api/public/hooks/validate-links'
+      fullPath: '/api/public/hooks/validate-links'
+      preLoaderRoute: typeof ApiPublicHooksValidateLinksRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -293,6 +314,7 @@ const rootRouteChildren: RootRouteChildren = {
   QuestionnaireRoute: QuestionnaireRoute,
   ResultsRoute: ResultsRoute,
   SchemesRoute: SchemesRoute,
+  ApiPublicHooksValidateLinksRoute: ApiPublicHooksValidateLinksRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
