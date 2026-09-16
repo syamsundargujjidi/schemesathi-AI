@@ -111,11 +111,63 @@ function DatabaseDashboard() {
       ).length,
     };
 
-    return { central: central.length, states, utTotal, categories, scopes, quality };
+    const slugCounts = new Map<string, number>();
+    for (const s of schemes) slugCounts.set(s.slug, (slugCounts.get(s.slug) ?? 0) + 1);
+    const duplicates = [...slugCounts.values()].reduce((n, c) => n + (c > 1 ? c - 1 : 0), 0);
+
+    const links = { ok: 0, unreachable: 0, invalid: 0, unchecked: 0, missing: 0 };
+    for (const s of schemes) {
+      const status = (s as unknown as { link_status?: string }).link_status ?? "unchecked";
+      const state = officialLink(s as never).state;
+      if (state === "missing") links.missing += 1;
+      else if (status === "unchecked") links.unchecked += 1;
+      else if (state === "invalid") links.invalid += 1;
+      else if (state === "unreachable") links.unreachable += 1;
+      else links.ok += 1;
+    }
+
+    return { central: central.length, states, utTotal, categories, scopes, quality, links, duplicates };
   }, [schemes]);
 
   const stateRows = INDIAN_STATES.filter((s) => !isUnionTerritory(s));
   const utRows = INDIAN_STATES.filter((s) => isUnionTerritory(s));
+
+  const { data: job, refetch: refetchJob } = useQuery({
+    queryKey: ["validation-job"],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("validation_jobs")
+        .select("last_run_at, last_finished_at, checked_last_run, paused, paused_reason")
+        .eq("job_name", "link_validation")
+        .maybeSingle();
+      return data;
+    },
+    refetchInterval: 60_000,
+  });
+
+  const [running, setRunning] = useState(false);
+
+  function downloadCsv() {
+    const csv = buildReportCsv(schemes);
+    const url = URL.createObjectURL(new Blob([csv], { type: "text/csv;charset=utf-8" }));
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `scheme-sathi-data-quality-${new Date().toISOString().slice(0, 10)}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+
+  async function runChecksNow() {
+    setRunning(true);
+    try {
+      await fetch("/api/public/hooks/validate-links", { method: "POST" });
+    } catch (e) {
+      console.error("[database] manual validation run failed", e);
+    } finally {
+      setRunning(false);
+      refetchJob();
+    }
+  }
 
   return (
     <section className="mx-auto max-w-5xl px-4 py-14">
