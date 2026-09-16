@@ -8,6 +8,7 @@ import {
 } from "lucide-react";
 import {
   schemesQueryOptions,
+  officialLink,
   type UserProfile,
 } from "@/lib/schemes";
 import {
