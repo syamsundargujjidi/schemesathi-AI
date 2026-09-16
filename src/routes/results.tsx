@@ -353,8 +353,8 @@ function SchemeCard({ match }: { match: SchemeMatch }) {
   const [explanation, setExplanation] = useState<string | null>(null);
   const { i18n } = useTranslation();
   const apply = myschemeUrl(scheme.name);
-  const stored = ((scheme as any).official_website || scheme.apply_url || "") as string;
-  const officialUrl = /^https?:\/\/[^\s]+\.[a-z]{2,}/i.test(stored) ? stored : null;
+  const link = officialLink(scheme as any);
+  const officialUrl = link.url;
 
   function onApplyClick() {
     if (user) trackRecentScheme(user.uid, scheme.id, scheme.name);
