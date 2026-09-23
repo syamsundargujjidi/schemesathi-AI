@@ -358,7 +358,7 @@ function SchemeCard({ match }: { match: SchemeMatch }) {
   const schemeActive = (((scheme as any).scheme_status as string | undefined) ?? "Active") === "Active";
   // Show the official site unless the page is confirmed gone (404/410) or the scheme ended.
   // "Could not reach" usually means the site blocks checks from outside India, so keep it.
-  const showOfficial = !!officialUrl && link.state !== "invalid" && schemeActive;
+  const showOfficial = !!officialUrl && schemeActive;
 
   function onApplyClick() {
     if (user) trackRecentScheme(user.uid, scheme.id, scheme.name);
