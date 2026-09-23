@@ -356,8 +356,9 @@ function SchemeCard({ match }: { match: SchemeMatch }) {
   const link = officialLink(scheme as any);
   const officialUrl = link.url;
   const schemeActive = (((scheme as any).scheme_status as string | undefined) ?? "Active") === "Active";
-  // Only show the official-site button for links confirmed working on an active scheme.
-  const showOfficial = !!officialUrl && link.state === "ok" && schemeActive && (scheme as any).link_status === "ok";
+  // Show the official site unless the page is confirmed gone (404/410) or the scheme ended.
+  // "Could not reach" usually means the site blocks checks from outside India, so keep it.
+  const showOfficial = !!officialUrl && schemeActive;
 
   function onApplyClick() {
     if (user) trackRecentScheme(user.uid, scheme.id, scheme.name);
@@ -480,9 +481,15 @@ function SchemeCard({ match }: { match: SchemeMatch }) {
             Official site — Apply <ExternalLink className="h-4 w-4" />
           </a>
         ) : (
-          <span className="inline-flex flex-1 items-center justify-center gap-1 rounded-full border border-dashed border-input px-3 py-2.5 text-xs text-muted-foreground">
-            Official site not available
-          </span>
+          <a
+            href={myschemeUrl(scheme.name)}
+            target="_blank"
+            rel="noreferrer"
+            onClick={onApplyClick}
+            className="inline-flex flex-1 items-center justify-center gap-2 rounded-full border border-primary px-5 py-2.5 text-sm font-semibold text-primary transition hover:bg-secondary"
+          >
+            Find on myScheme <ExternalLink className="h-4 w-4" />
+          </a>
         )}
         <button
           onClick={onSaveOne}
