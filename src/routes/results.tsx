@@ -353,9 +353,11 @@ function SchemeCard({ match }: { match: SchemeMatch }) {
   const [explaining, setExplaining] = useState(false);
   const [explanation, setExplanation] = useState<string | null>(null);
   const { i18n } = useTranslation();
-  const apply = myschemeUrl(scheme.name);
   const link = officialLink(scheme as any);
   const officialUrl = link.url;
+  const schemeActive = (((scheme as any).scheme_status as string | undefined) ?? "Active") === "Active";
+  // Only show the official-site button for links confirmed working on an active scheme.
+  const showOfficial = !!officialUrl && link.state === "ok" && schemeActive && (scheme as any).link_status === "ok";
 
   function onApplyClick() {
     if (user) trackRecentScheme(user.uid, scheme.id, scheme.name);
@@ -467,19 +469,19 @@ function SchemeCard({ match }: { match: SchemeMatch }) {
       )}
 
       <div className="mt-5 flex flex-col gap-2 sm:flex-row">
-        {officialUrl ? (
+        {showOfficial ? (
           <a
-            href={officialUrl}
+            href={officialUrl!}
             target="_blank"
             rel="noreferrer"
             onClick={onApplyClick}
             className="inline-flex flex-1 items-center justify-center gap-2 rounded-full bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground transition hover:brightness-110"
           >
-            {t("results.apply")} <ExternalLink className="h-4 w-4" />
+            Official site — Apply <ExternalLink className="h-4 w-4" />
           </a>
         ) : (
           <span className="inline-flex flex-1 items-center justify-center gap-1 rounded-full border border-dashed border-input px-3 py-2.5 text-xs text-muted-foreground">
-            {link.state === "invalid" ? link.note : "Official application link unavailable"}
+            Official site not available
           </span>
         )}
         <button
@@ -489,20 +491,7 @@ function SchemeCard({ match }: { match: SchemeMatch }) {
         >
           {savedOne ? <><Check className="h-3.5 w-3.5" /> Saved</> : <><Bookmark className="h-3.5 w-3.5" /> Save</>}
         </button>
-        <a
-          href={apply}
-          target="_blank"
-          rel="noreferrer"
-          onClick={onApplyClick}
-          className="inline-flex items-center justify-center gap-2 rounded-full border border-input px-4 py-2.5 text-xs font-semibold hover:bg-secondary"
-        >
-          myScheme <ArrowRight className="h-3.5 w-3.5" />
-        </a>
       </div>
-
-      {link.state === "unreachable" && (
-        <p className="mt-2 text-xs text-muted-foreground">⚠️ {link.note}</p>
-      )}
 
       <button
         onClick={onExplain}
