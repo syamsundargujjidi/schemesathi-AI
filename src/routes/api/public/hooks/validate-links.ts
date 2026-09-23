@@ -77,30 +77,33 @@ async function handle() {
 
     if (error) throw error;
 
-    for (const row of (rows ?? []) as SchemeRow[]) {
-      const url = row.official_source_url || row.official_website || row.apply_url;
-      const result = await checkOfficialLink(url);
+    const list = (rows ?? []) as SchemeRow[];
+    const CONCURRENCY = 5;
+    for (let i = 0; i < list.length; i += CONCURRENCY) {
+      await Promise.all(
+        list.slice(i, i + CONCURRENCY).map(async (row) => {
+          const url = row.official_source_url || row.official_website || row.apply_url;
+          const result = await checkOfficialLink(url);
+          const failCount = result.status === "ok" ? 0 : (row.link_fail_count ?? 0) + 1;
 
-      const failCount =
-        result.status === "ok" ? 0 : (row.link_fail_count ?? 0) + 1;
+          // Idempotent progress marking: each scheme is stamped as it is processed.
+          const { error: upErr } = await supabaseAdmin
+            .from("schemes")
+            .update({
+              link_status: result.status,
+              link_http_status: result.httpStatus,
+              link_checked_at: new Date().toISOString(),
+              link_fail_count: failCount,
+            })
+            .eq("id", row.id);
+          if (upErr) console.error("[validate-links] update failed", row.slug, upErr);
 
-      // Idempotent progress marking: each scheme is stamped as it is processed.
-      const { error: upErr } = await supabaseAdmin
-        .from("schemes")
-        .update({
-          link_status: result.status,
-          link_http_status: result.httpStatus,
-          link_checked_at: new Date().toISOString(),
-          link_fail_count: failCount,
-        })
-        .eq("id", row.id);
-
-      if (upErr) console.error("[validate-links] update failed", row.slug, upErr);
-
-      checked += 1;
-      if (result.status === "ok") ok += 1;
-      else if (result.status === "invalid") invalid += 1;
-      else unreachable += 1;
+          checked += 1;
+          if (result.status === "ok") ok += 1;
+          else if (result.status === "invalid") invalid += 1;
+          else unreachable += 1;
+        }),
+      );
     }
   } catch (err) {
     console.error("[validate-links] run failed", err);
